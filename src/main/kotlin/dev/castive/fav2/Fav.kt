@@ -3,17 +3,9 @@ package dev.castive.fav2
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
 
-class Fav {
-    companion object {
-        private lateinit var single: Fav
+object Fav {
+    var DEBUG = false
 
-        fun getInstance(): Fav {
-            if(!this::single.isInitialized) single = Fav()
-            return single
-        }
-
-        var DEBUG = false
-    }
     fun loadDomain(domain: String): String? {
         var icon: String? = DirectNetworkLoader().getIconPath(domain)
         if(icon != null && icon.isNotBlank()) return icon

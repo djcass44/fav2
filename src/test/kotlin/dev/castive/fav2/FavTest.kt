@@ -19,7 +19,7 @@ class FavTest {
         "https://apple.com"
     ])
     fun getKnown(value: String) {
-        val icon = Fav.getInstance().loadDomain(value)
+        val icon = Fav.loadDomain(value)
         Log.d(javaClass, icon)
         Assertions.assertNotNull(icon)
         Assertions.assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
