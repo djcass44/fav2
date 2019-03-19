@@ -19,7 +19,7 @@ allprojects {
 2. In your project build.gradle
 ```gradle
 dependencies {
-    implementation 'com.github.djcass44:fav2:0.1.1'
+    implementation 'com.github.djcass44:fav2:0.2.0'
 }
 ```
 Maven:
@@ -38,7 +38,7 @@ Maven:
 <dependency>
     <groupId>com.github.djcass44</groupId>
     <artifactId>fav2</artifactId>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
