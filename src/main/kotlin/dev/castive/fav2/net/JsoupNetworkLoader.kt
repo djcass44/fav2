@@ -2,6 +2,7 @@ package dev.castive.fav2.net
 
 import com.django.log2.logging.Log
 import dev.castive.fav2.Definitions
+import dev.castive.fav2.Fav
 import org.jsoup.Jsoup
 
 class JsoupNetworkLoader: NetworkLoader {
@@ -13,11 +14,11 @@ class JsoupNetworkLoader: NetworkLoader {
         val document = Jsoup.connect(domain).get()
         val validIcons = arrayListOf<String>()
         val icon = document.head().select("link[rel]").select("link[href]")
-        Log.d(javaClass, "Loaded ${icon.size} links")
+        if(Fav.DEBUG) Log.d(javaClass, "Loaded ${icon.size} links")
         icon.forEach {
             if(Definitions.contains(it.attr("rel"))) {
                 validIcons.add(it.attr("href"))
-                Log.d(javaClass, it.attr("href"))
+                if(Fav.DEBUG) Log.d(javaClass, it.attr("href"))
             }
         }
         return if(validIcons.isEmpty()) null else validIcons[0]

@@ -1,11 +1,18 @@
 package dev.castive.fav2.net
 
 import com.django.log2.logging.Log
+import dev.castive.fav2.Fav
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class NetworkLoaderTest {
+    @BeforeEach
+    internal fun setUp() {
+        Fav.DEBUG = true
+    }
+
     @ParameterizedTest
     @ValueSource(strings = [
         "https://github.com"

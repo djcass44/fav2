@@ -5,12 +5,14 @@ import dev.castive.fav2.net.JsoupNetworkLoader
 
 class Fav {
     companion object {
-        lateinit var single: Fav
+        private lateinit var single: Fav
 
         fun getInstance(): Fav {
             if(!this::single.isInitialized) single = Fav()
             return single
         }
+
+        var DEBUG = false
     }
     fun loadDomain(domain: String): String? {
         var icon: String? = DirectNetworkLoader().getIconPath(domain)
