@@ -17,6 +17,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("com.gitlab.django-sandbox:log2:8b941edd1a")
+    implementation("org.jsoup:jsoup:1.11.3")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
