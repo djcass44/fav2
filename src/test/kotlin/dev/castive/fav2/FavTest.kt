@@ -41,7 +41,7 @@ class FavTest {
         val icon = Fav.loadDomain(value)
         Log.d(javaClass, icon)
         assertNotNull(icon)
-        assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
+        assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
     }
 
     @Test

@@ -39,7 +39,7 @@ class NetworkLoaderTest {
         val icon = loader.getIconPath(value)
         Log.d(javaClass, icon)
         assertNotNull(icon)
-        assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
+        assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
     }
     @ParameterizedTest
     @ValueSource(strings = [
@@ -56,13 +56,14 @@ class NetworkLoaderTest {
     @ValueSource(strings = [
         "https://github.com",
         "https://google.com",
-        "https://apple.com"
+        "https://apple.com",
+        "https://castive.dev"
     ])
     fun getKnownDirect(value: String) {
         val loader = DirectNetworkLoader()
         val icon = loader.getIconPath(value)
         Log.d(javaClass, icon)
         assertNotNull(icon)
-        assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
+        assertTrue(icon.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
     }
 }
