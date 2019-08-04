@@ -29,6 +29,7 @@ repositories {
     maven(url = "https://jitpack.io")
     mavenCentral()
     jcenter()
+    maven(url = "https://dl.bintray.com/nitram509/jbrotli/")
 }
 
 dependencies {
@@ -38,6 +39,10 @@ dependencies {
     implementation("com.github.djcass44:log2:352d950dab")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.squareup.okhttp3:okhttp:3.14.0")
+
+    implementation("io.javalin:javalin:3.2.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
+    implementation("org.slf4j:slf4j-simple:1.7.26")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
