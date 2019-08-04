@@ -19,18 +19,11 @@ package dev.castive.fav2
 
 import dev.castive.log2.Log
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class FavTest {
-	@BeforeEach
-	internal fun setUp() {
-		Fav.DEBUG = true
-		Fav.ALLOW_HTTP = false
-	}
-
 	@ParameterizedTest
 	@ValueSource(strings = [
 		"https://github.com",
@@ -38,7 +31,7 @@ class FavTest {
 		"https://apple.com"
 	])
 	fun getKnown(value: String) {
-		val icon = Fav.loadDomain(value)
+		val icon = Fav().loadDomain(value)
 		Log.d(javaClass, icon.toString())
 		assertNotNull(icon)
 		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
@@ -46,20 +39,20 @@ class FavTest {
 
 	@Test
 	fun checkSecure() {
-		Fav.ALLOW_HTTP = false
-		val allowed = Fav.checkDomain("https://google.com")
+		val fav = Fav(debug = false, allowHttp = false)
+		val allowed = fav.checkDomain("https://google.com")
 		assertTrue(allowed)
 	}
 	@Test
 	fun checkInsecure() {
-		Fav.ALLOW_HTTP = false
-		val allowed = Fav.checkDomain("http://google.com")
+		val fav = Fav(debug = false, allowHttp = false)
+		val allowed = fav.checkDomain("http://google.com")
 		assertFalse(allowed)
 	}
 	@Test
 	fun checkInsecureAllowed() {
-		Fav.ALLOW_HTTP = true
-		val allowed = Fav.checkDomain("http://google.com")
+		val fav = Fav(debug = false, allowHttp = true)
+		val allowed = fav.checkDomain("http://google.com")
 		assertTrue(allowed)
 	}
 }

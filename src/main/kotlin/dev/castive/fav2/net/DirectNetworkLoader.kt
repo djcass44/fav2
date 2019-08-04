@@ -17,23 +17,15 @@
 
 package dev.castive.fav2.net
 
-import dev.castive.fav2.Fav
 import dev.castive.log2.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
 
-class DirectNetworkLoader: NetworkLoader {
-	companion object {
-		val client = OkHttpClient()
+class DirectNetworkLoader(private val debug: Boolean): NetworkLoader {
+	private val imageMimes = arrayListOf("png", "ico")
+	private val client = OkHttpClient()
 
-		val imageMimes = arrayListOf(
-			"png",
-			"jpg",
-			"jpeg",
-			"ico"
-		)
-	}
 	override fun getIconPath(domain: String): String {
 		val uri = URI(domain)
 		val host = "${uri.scheme}://${uri.host}"
@@ -44,12 +36,12 @@ class DirectNetworkLoader: NetworkLoader {
 		return ""
 	}
 	private fun getIcon(target: String): String? {
-		if(Fav.DEBUG) Log.d(javaClass, "Targeting host $target")
+		if(debug) Log.d(javaClass, "Targeting host $target")
 		val request = Request.Builder().url(target).head().build()
 		return try {
 			val r = client.newCall(request).execute()
 			val xHeader = r.header("Content-Type")
-			if(Fav.DEBUG) Log.v(javaClass, "Domain XHeader: $xHeader")
+			if(debug) Log.v(javaClass, "Domain XHeader: $xHeader")
 			// Check that the response has a { Content-Type: 'image/...' } header
 			// This may need to be relaxed if websites don't use that mime
 			if(xHeader != null && xHeader.startsWith("image"))
@@ -57,7 +49,7 @@ class DirectNetworkLoader: NetworkLoader {
 			null
 		}
 		catch (e: Exception) {
-			if(Fav.DEBUG) Log.v(javaClass, "Failed to get direct favicon")
+			if(debug) Log.v(javaClass, "Failed to get direct favicon")
 			null
 		}
 	}

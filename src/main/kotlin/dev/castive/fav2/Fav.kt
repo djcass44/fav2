@@ -19,22 +19,63 @@ package dev.castive.fav2
 
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
+import dev.castive.fav2.util.EnvUtil
 import dev.castive.log2.Log
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
+import java.net.URI
+import java.util.concurrent.CompletableFuture
+import javax.imageio.ImageIO
 
-@Suppress("unused")
-object Fav {
-	var DEBUG = false
-	var ALLOW_HTTP = false
+class Fav(
+	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean(),
+	private val allowHttp: Boolean = EnvUtil.getEnv(EnvUtil.FAV_ALLOW_HTTP, "false").toBoolean()
+) {
+	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
 
+	private suspend fun downloadDomain(path: String) = withContext(Dispatchers.IO) {
+		val uri = URI(path)
+		Log.i(javaClass, "Starting to download image at path: ${uri.toURL()}")
+		val image = runCatching { ImageIO.read(uri.toURL()) }
+		val err = image.exceptionOrNull()
+		if (err != null) Log.e(javaClass, "Failed to load favicon data: $err")
+		val data = image.getOrNull() ?: run {
+			Log.w(javaClass, "Got no image for target: $path")
+			return@withContext
+		}
+		val name = uri.host.replace(".", "_")
+		val extension = uri.path.split(".").last()
+		Log.i(javaClass, "Got extension: $extension")
+		try {
+			val file = File("$dataPath${File.separator}$name.png")
+			ImageIO.write(data, "png", file)
+			Log.i(javaClass, "Wrote data to path: ${file.absolutePath}")
+		}
+		catch (e: IOException) {
+			Log.e(javaClass, "Failed to write data: $e")
+		}
+	}
+
+	fun loadDomain(domain: String, future: CompletableFuture<String?>) {
+		future.complete(loadDomain(domain))
+	}
 	fun loadDomain(domain: String): String? {
 		if(!checkDomain(domain)) return null
-		var icon: String? = DirectNetworkLoader().getIconPath(domain)
-		if(icon != null && icon.isNotBlank()) return icon
+		var icon: String? = DirectNetworkLoader(debug).getIconPath(domain)
+		if(icon != null && icon.isNotBlank()) {
+			GlobalScope.launch { downloadDomain(icon!!) }
+			return icon
+		}
 
-		icon = JsoupNetworkLoader().getIconPath(domain)
-		if(icon != null && icon.isNotBlank()) return icon
+		icon = JsoupNetworkLoader(debug).getIconPath(domain)
+		if(icon != null && icon.isNotBlank()) {
+			GlobalScope.launch { downloadDomain(icon) }
+			return icon
+		}
 
 		return null
 	}
@@ -44,13 +85,13 @@ object Fav {
 			return
 		}
 		GlobalScope.launch {
-			var icon: String? = DirectNetworkLoader().getIconPath(domain)
+			var icon: String? = DirectNetworkLoader(debug).getIconPath(domain)
 			if(icon != null && icon.isNotBlank()) {
 				callback.onLoad(icon)
 				return@launch
 			}
 			// if we found nothing, fallback to the slower DOM analysis
-			icon = JsoupNetworkLoader().getIconPath(domain)
+			icon = JsoupNetworkLoader(debug).getIconPath(domain)
 			if(icon != null && icon.isNotBlank()) {
 				callback.onLoad(icon)
 				return@launch
@@ -60,8 +101,8 @@ object Fav {
 	}
 
 	internal fun checkDomain(domain: String): Boolean {
-		if(domain.startsWith("http://") && ALLOW_HTTP && DEBUG) Log.w(javaClass, "Loading of insecure origins is not recommended.")
-		return !domain.startsWith("http://") || ALLOW_HTTP
+		if(domain.startsWith("http://") && allowHttp && debug) Log.w(javaClass, "Loading of insecure origins is not recommended.")
+		return !domain.startsWith("http://") || allowHttp
 	}
 
 	interface OnLoadedCallback {

@@ -17,29 +17,23 @@
 
 package dev.castive.fav2.net
 
-import dev.castive.fav2.Fav
 import dev.castive.log2.Log
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class NetworkLoaderTest {
-	@BeforeEach
-	internal fun setUp() {
-		Fav.DEBUG = true
-	}
 
 	@ParameterizedTest
 	@ValueSource(strings = [
 		"https://github.com"
 	])
 	fun getKnownDocument(value: String) {
-		val loader = JsoupNetworkLoader()
+		val loader = JsoupNetworkLoader(true)
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNotNull(icon)
-		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
+		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
 	}
 	@ParameterizedTest
 	@ValueSource(strings = [
@@ -47,7 +41,7 @@ class NetworkLoaderTest {
 		"https://apple.com"
 	])
 	fun getFailDocument(value: String) {
-		val loader = JsoupNetworkLoader()
+		val loader = JsoupNetworkLoader(true)
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNull(icon)
@@ -60,10 +54,10 @@ class NetworkLoaderTest {
 		"https://jmp.castive.dev"
 	])
 	fun getKnownDirect(value: String) {
-		val loader = DirectNetworkLoader()
+		val loader = DirectNetworkLoader(true)
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon)
 		assertNotNull(icon)
-		assertTrue(icon.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
+		assertTrue(icon.endsWith("png") || icon.endsWith("ico"))
 	}
 }

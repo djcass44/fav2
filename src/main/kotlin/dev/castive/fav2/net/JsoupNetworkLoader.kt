@@ -18,11 +18,10 @@
 package dev.castive.fav2.net
 
 import dev.castive.fav2.Definitions
-import dev.castive.fav2.Fav
 import dev.castive.log2.Log
 import org.jsoup.Jsoup
 
-class JsoupNetworkLoader: NetworkLoader {
+class JsoupNetworkLoader(private val debug: Boolean): NetworkLoader {
 	/**
 	 * Attempt to load the sites favicon by searching the links within the <head></head>
 	 * E.g. <link rel="shortcut icon" href="https://github.githubassets.com/favicon.ico">
@@ -32,11 +31,11 @@ class JsoupNetworkLoader: NetworkLoader {
 			val document = Jsoup.connect(domain).get()
 			val validIcons = arrayListOf<String>()
 			val icon = document.head().select("link[rel]").select("link[href]")
-			if (Fav.DEBUG) Log.d(javaClass, "Loaded ${icon.size} links")
+			if (debug) Log.d(javaClass, "Loaded ${icon.size} links")
 			icon.forEach {
 				if (Definitions.contains(it.attr("rel"))) {
 					validIcons.add(it.attr("href"))
-					if (Fav.DEBUG) Log.d(javaClass, it.attr("href"))
+					if (debug) Log.d(javaClass, it.attr("href"))
 				}
 			}
 			return if (validIcons.isEmpty()) null else validIcons[0]

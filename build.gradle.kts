@@ -18,42 +18,44 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.40"
-    maven
+	kotlin("jvm") version "1.3.40"
+	maven
 }
 group = "dev.castive"
 version = "0.3"
 
 
 repositories {
-    maven(url = "https://jitpack.io")
-    mavenCentral()
-    jcenter()
-    maven(url = "https://dl.bintray.com/nitram509/jbrotli/")
+	maven(url = "https://jitpack.io")
+	mavenCentral()
+	jcenter()
+	maven(url = "https://dl.bintray.com/nitram509/jbrotli/")
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
+	implementation(kotlin("stdlib-jdk8"))
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
 
-    implementation("com.github.djcass44:log2:352d950dab")
-    implementation("org.jsoup:jsoup:1.11.3")
-    implementation("com.squareup.okhttp3:okhttp:3.14.0")
+	implementation("com.github.djcass44:log2:352d950dab")
+	implementation("org.jsoup:jsoup:1.11.3")
+	implementation("com.squareup.okhttp3:okhttp:3.14.0")
 
-    implementation("io.javalin:javalin:3.2.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
-    implementation("org.slf4j:slf4j-simple:1.7.26")
+	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+	implementation("io.javalin:javalin:3.2.0")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
+	implementation("org.slf4j:slf4j-simple:1.7.26")
+
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
+	testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")
 }
 
 tasks {
-    withType<KotlinCompile>().all {
-        kotlinOptions.jvmTarget = "11"
-    }
-    withType<Test> {
-        useJUnitPlatform()
-    }
+	withType<KotlinCompile>().all {
+		kotlinOptions.jvmTarget = "11"
+	}
+	withType<Test> {
+		useJUnitPlatform()
+	}
 }
