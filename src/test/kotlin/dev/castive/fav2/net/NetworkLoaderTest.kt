@@ -17,8 +17,8 @@
 
 package dev.castive.fav2.net
 
-import com.django.log2.logging.Log
 import dev.castive.fav2.Fav
+import dev.castive.log2.Log
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
@@ -37,7 +37,7 @@ class NetworkLoaderTest {
     fun getKnownDocument(value: String) {
         val loader = JsoupNetworkLoader()
         val icon = loader.getIconPath(value)
-        Log.d(javaClass, icon)
+        Log.d(javaClass, icon.toString())
         assertNotNull(icon)
         assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
     }
@@ -49,7 +49,7 @@ class NetworkLoaderTest {
     fun getFailDocument(value: String) {
         val loader = JsoupNetworkLoader()
         val icon = loader.getIconPath(value)
-        Log.d(javaClass, icon)
+        Log.d(javaClass, icon.toString())
         assertNull(icon)
     }
     @ParameterizedTest
@@ -57,7 +57,7 @@ class NetworkLoaderTest {
         "https://github.com",
         "https://google.com",
         "https://apple.com",
-        "https://castive.dev"
+        "https://jmp.castive.dev"
     ])
     fun getKnownDirect(value: String) {
         val loader = DirectNetworkLoader()

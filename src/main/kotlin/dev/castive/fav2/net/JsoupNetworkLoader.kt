@@ -17,9 +17,9 @@
 
 package dev.castive.fav2.net
 
-import com.django.log2.logging.Log
 import dev.castive.fav2.Definitions
 import dev.castive.fav2.Fav
+import dev.castive.log2.Log
 import org.jsoup.Jsoup
 
 class JsoupNetworkLoader: NetworkLoader {

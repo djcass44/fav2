@@ -17,7 +17,7 @@
 
 package dev.castive.fav2
 
-import com.django.log2.logging.Log
+import dev.castive.log2.Log
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,7 +39,7 @@ class FavTest {
     ])
     fun getKnown(value: String) {
         val icon = Fav.loadDomain(value)
-        Log.d(javaClass, icon)
+        Log.d(javaClass, icon.toString())
         assertNotNull(icon)
         assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
     }

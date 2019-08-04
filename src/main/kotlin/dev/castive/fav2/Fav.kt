@@ -17,10 +17,13 @@
 
 package dev.castive.fav2
 
-import com.django.log2.logging.Log
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
+import dev.castive.log2.Log
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
+@Suppress("unused")
 object Fav {
     var DEBUG = false
     var ALLOW_HTTP = false
@@ -40,23 +43,19 @@ object Fav {
             callback.onLoad(null)
             return
         }
-        Thread {
+        GlobalScope.launch {
             var icon: String? = DirectNetworkLoader().getIconPath(domain)
             if(icon != null && icon.isNotBlank()) {
                 callback.onLoad(icon)
-                return@Thread
+                return@launch
             }
-
+            // if we found nothing, fallback to the slower DOM analysis
             icon = JsoupNetworkLoader().getIconPath(domain)
             if(icon != null && icon.isNotBlank()) {
                 callback.onLoad(icon)
-                return@Thread
+                return@launch
             }
-
             callback.onLoad(null)
-        }.apply {
-            isDaemon = true
-            start()
         }
     }
 

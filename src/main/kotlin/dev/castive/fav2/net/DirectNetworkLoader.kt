@@ -17,8 +17,8 @@
 
 package dev.castive.fav2.net
 
-import com.django.log2.logging.Log
 import dev.castive.fav2.Fav
+import dev.castive.log2.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI

@@ -18,23 +18,24 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.30-eap-45"
+    kotlin("jvm") version "1.3.40"
     maven
 }
 group = "dev.castive"
-version = "0.1"
+version = "0.3"
 
 
 repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
     maven(url = "https://jitpack.io")
+    mavenCentral()
     jcenter()
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
 
-    implementation("com.gitlab.django-sandbox:log2:8b941edd1a")
+    implementation("com.github.djcass44:log2:352d950dab")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.squareup.okhttp3:okhttp:3.14.0")
 
@@ -43,9 +44,11 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-tasks.withType<Test> {
-    useJUnitPlatform()
+tasks {
+    withType<KotlinCompile>().all {
+        kotlinOptions.jvmTarget = "11"
+    }
+    withType<Test> {
+        useJUnitPlatform()
+    }
 }
