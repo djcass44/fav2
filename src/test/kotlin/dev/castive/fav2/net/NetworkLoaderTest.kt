@@ -25,45 +25,45 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class NetworkLoaderTest {
-    @BeforeEach
-    internal fun setUp() {
-        Fav.DEBUG = true
-    }
+	@BeforeEach
+	internal fun setUp() {
+		Fav.DEBUG = true
+	}
 
-    @ParameterizedTest
-    @ValueSource(strings = [
-        "https://github.com"
-    ])
-    fun getKnownDocument(value: String) {
-        val loader = JsoupNetworkLoader()
-        val icon = loader.getIconPath(value)
-        Log.d(javaClass, icon.toString())
-        assertNotNull(icon)
-        assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
-    }
-    @ParameterizedTest
-    @ValueSource(strings = [
-        "https://google.com",
-        "https://apple.com"
-    ])
-    fun getFailDocument(value: String) {
-        val loader = JsoupNetworkLoader()
-        val icon = loader.getIconPath(value)
-        Log.d(javaClass, icon.toString())
-        assertNull(icon)
-    }
-    @ParameterizedTest
-    @ValueSource(strings = [
-        "https://github.com",
-        "https://google.com",
-        "https://apple.com",
-        "https://jmp.castive.dev"
-    ])
-    fun getKnownDirect(value: String) {
-        val loader = DirectNetworkLoader()
-        val icon = loader.getIconPath(value)
-        Log.d(javaClass, icon)
-        assertNotNull(icon)
-        assertTrue(icon.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
-    }
+	@ParameterizedTest
+	@ValueSource(strings = [
+		"https://github.com"
+	])
+	fun getKnownDocument(value: String) {
+		val loader = JsoupNetworkLoader()
+		val icon = loader.getIconPath(value)
+		Log.d(javaClass, icon.toString())
+		assertNotNull(icon)
+		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
+	}
+	@ParameterizedTest
+	@ValueSource(strings = [
+		"https://google.com",
+		"https://apple.com"
+	])
+	fun getFailDocument(value: String) {
+		val loader = JsoupNetworkLoader()
+		val icon = loader.getIconPath(value)
+		Log.d(javaClass, icon.toString())
+		assertNull(icon)
+	}
+	@ParameterizedTest
+	@ValueSource(strings = [
+		"https://github.com",
+		"https://google.com",
+		"https://apple.com",
+		"https://jmp.castive.dev"
+	])
+	fun getKnownDirect(value: String) {
+		val loader = DirectNetworkLoader()
+		val icon = loader.getIconPath(value)
+		Log.d(javaClass, icon)
+		assertNotNull(icon)
+		assertTrue(icon.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
+	}
 }

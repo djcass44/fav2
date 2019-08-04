@@ -25,46 +25,46 @@ import kotlinx.coroutines.launch
 
 @Suppress("unused")
 object Fav {
-    var DEBUG = false
-    var ALLOW_HTTP = false
+	var DEBUG = false
+	var ALLOW_HTTP = false
 
-    fun loadDomain(domain: String): String? {
-        if(!checkDomain(domain)) return null
-        var icon: String? = DirectNetworkLoader().getIconPath(domain)
-        if(icon != null && icon.isNotBlank()) return icon
+	fun loadDomain(domain: String): String? {
+		if(!checkDomain(domain)) return null
+		var icon: String? = DirectNetworkLoader().getIconPath(domain)
+		if(icon != null && icon.isNotBlank()) return icon
 
-        icon = JsoupNetworkLoader().getIconPath(domain)
-        if(icon != null && icon.isNotBlank()) return icon
+		icon = JsoupNetworkLoader().getIconPath(domain)
+		if(icon != null && icon.isNotBlank()) return icon
 
-        return null
-    }
-    fun loadDomain(domain: String, callback: OnLoadedCallback) {
-        if(!checkDomain(domain)) {
-            callback.onLoad(null)
-            return
-        }
-        GlobalScope.launch {
-            var icon: String? = DirectNetworkLoader().getIconPath(domain)
-            if(icon != null && icon.isNotBlank()) {
-                callback.onLoad(icon)
-                return@launch
-            }
-            // if we found nothing, fallback to the slower DOM analysis
-            icon = JsoupNetworkLoader().getIconPath(domain)
-            if(icon != null && icon.isNotBlank()) {
-                callback.onLoad(icon)
-                return@launch
-            }
-            callback.onLoad(null)
-        }
-    }
+		return null
+	}
+	fun loadDomain(domain: String, callback: OnLoadedCallback) {
+		if(!checkDomain(domain)) {
+			callback.onLoad(null)
+			return
+		}
+		GlobalScope.launch {
+			var icon: String? = DirectNetworkLoader().getIconPath(domain)
+			if(icon != null && icon.isNotBlank()) {
+				callback.onLoad(icon)
+				return@launch
+			}
+			// if we found nothing, fallback to the slower DOM analysis
+			icon = JsoupNetworkLoader().getIconPath(domain)
+			if(icon != null && icon.isNotBlank()) {
+				callback.onLoad(icon)
+				return@launch
+			}
+			callback.onLoad(null)
+		}
+	}
 
-    internal fun checkDomain(domain: String): Boolean {
-        if(domain.startsWith("http://") && ALLOW_HTTP && DEBUG) Log.w(javaClass, "Loading of insecure origins is not recommended.")
-        return !domain.startsWith("http://") || ALLOW_HTTP
-    }
+	internal fun checkDomain(domain: String): Boolean {
+		if(domain.startsWith("http://") && ALLOW_HTTP && DEBUG) Log.w(javaClass, "Loading of insecure origins is not recommended.")
+		return !domain.startsWith("http://") || ALLOW_HTTP
+	}
 
-    interface OnLoadedCallback {
-        fun onLoad(favicon: String?)
-    }
+	interface OnLoadedCallback {
+		fun onLoad(favicon: String?)
+	}
 }

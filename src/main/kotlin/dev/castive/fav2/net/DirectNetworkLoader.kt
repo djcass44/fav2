@@ -24,41 +24,41 @@ import okhttp3.Request
 import java.net.URI
 
 class DirectNetworkLoader: NetworkLoader {
-    companion object {
-        val client = OkHttpClient()
+	companion object {
+		val client = OkHttpClient()
 
-        val imageMimes = arrayListOf(
-            "png",
-            "jpg",
-            "jpeg",
-            "ico"
-        )
-    }
-    override fun getIconPath(domain: String): String {
-        val uri = URI(domain)
-        val host = "${uri.scheme}://${uri.host}"
-        for (mime in imageMimes) {
-            val res = getIcon("$host/favicon.$mime")
-            if(res != null) return res
-        }
-        return ""
-    }
-    private fun getIcon(target: String): String? {
-        if(Fav.DEBUG) Log.d(javaClass, "Targeting host $target")
-        val request = Request.Builder().url(target).head().build()
-        return try {
-            val r = client.newCall(request).execute()
-            val xHeader = r.header("Content-Type")
-            if(Fav.DEBUG) Log.v(javaClass, "Domain XHeader: $xHeader")
-            // Check that the response has a { Content-Type: 'image/...' } header
-            // This may need to be relaxed if websites don't use that mime
-            if(xHeader != null && xHeader.startsWith("image"))
-                return target
-            null
-        }
-        catch (e: Exception) {
-            if(Fav.DEBUG) Log.v(javaClass, "Failed to get direct favicon")
-            null
-        }
-    }
+		val imageMimes = arrayListOf(
+			"png",
+			"jpg",
+			"jpeg",
+			"ico"
+		)
+	}
+	override fun getIconPath(domain: String): String {
+		val uri = URI(domain)
+		val host = "${uri.scheme}://${uri.host}"
+		for (mime in imageMimes) {
+			val res = getIcon("$host/favicon.$mime")
+			if(res != null) return res
+		}
+		return ""
+	}
+	private fun getIcon(target: String): String? {
+		if(Fav.DEBUG) Log.d(javaClass, "Targeting host $target")
+		val request = Request.Builder().url(target).head().build()
+		return try {
+			val r = client.newCall(request).execute()
+			val xHeader = r.header("Content-Type")
+			if(Fav.DEBUG) Log.v(javaClass, "Domain XHeader: $xHeader")
+			// Check that the response has a { Content-Type: 'image/...' } header
+			// This may need to be relaxed if websites don't use that mime
+			if(xHeader != null && xHeader.startsWith("image"))
+				return target
+			null
+		}
+		catch (e: Exception) {
+			if(Fav.DEBUG) Log.v(javaClass, "Failed to get direct favicon")
+			null
+		}
+	}
 }
