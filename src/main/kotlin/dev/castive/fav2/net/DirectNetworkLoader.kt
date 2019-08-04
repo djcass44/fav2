@@ -22,7 +22,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
 
-class DirectNetworkLoader(private val debug: Boolean): NetworkLoader {
+class DirectNetworkLoader : NetworkLoader {
 	private val imageMimes = arrayListOf("png", "ico")
 	private val client = OkHttpClient()
 
@@ -36,12 +36,12 @@ class DirectNetworkLoader(private val debug: Boolean): NetworkLoader {
 		return ""
 	}
 	private fun getIcon(target: String): String? {
-		if(debug) Log.d(javaClass, "Targeting host $target")
+		Log.d(javaClass, "Targeting host $target")
 		val request = Request.Builder().url(target).head().build()
 		return try {
 			val r = client.newCall(request).execute()
 			val xHeader = r.header("Content-Type")
-			if(debug) Log.v(javaClass, "Domain XHeader: $xHeader")
+			Log.v(javaClass, "Domain XHeader: $xHeader")
 			// Check that the response has a { Content-Type: 'image/...' } header
 			// This may need to be relaxed if websites don't use that mime
 			if(xHeader != null && xHeader.startsWith("image")) {
@@ -52,7 +52,7 @@ class DirectNetworkLoader(private val debug: Boolean): NetworkLoader {
 			null
 		}
 		catch (e: Exception) {
-			if(debug) Log.v(javaClass, "Failed to get direct favicon")
+			Log.v(javaClass, "Failed to get direct favicon")
 			null
 		}
 	}

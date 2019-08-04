@@ -12,5 +12,8 @@ module dev.castive.fav2 {
     requires org.eclipse.jetty.http;
     requires okhttp3;
 
+    // required for ssl
+    requires jdk.crypto.ec;
+
     exports dev.castive.fav2;
 }

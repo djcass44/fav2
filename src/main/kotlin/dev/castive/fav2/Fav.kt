@@ -82,12 +82,13 @@ class Fav(
 	}
 	fun loadDomain(domain: String): String? {
 		if(!checkDomain(domain)) return null
-		var icon: String? = DirectNetworkLoader(debug).getIconPath(domain)
+		var icon: String? = DirectNetworkLoader().getIconPath(domain)
+		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
 			GlobalScope.launch { downloadDomain(icon!!) }
 			return "$baseUrl/icon?site=${safe(domain)}"
 		}
-
+		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
 		icon = JsoupNetworkLoader(debug).getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
 			GlobalScope.launch { downloadDomain(icon) }
@@ -102,7 +103,7 @@ class Fav(
 			return
 		}
 		GlobalScope.launch {
-			var icon: String? = DirectNetworkLoader(debug).getIconPath(domain)
+			var icon: String? = DirectNetworkLoader().getIconPath(domain)
 			if(icon != null && icon.isNotBlank()) {
 				callback.onLoad(icon)
 				return@launch

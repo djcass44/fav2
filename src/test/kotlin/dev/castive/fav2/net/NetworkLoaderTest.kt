@@ -54,7 +54,7 @@ class NetworkLoaderTest {
 		"https://jmp.castive.dev"
 	])
 	fun getKnownDirect(value: String) {
-		val loader = DirectNetworkLoader(true)
+		val loader = DirectNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon)
 		assertNotNull(icon)
