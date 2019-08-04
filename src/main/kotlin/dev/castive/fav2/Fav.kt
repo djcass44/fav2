@@ -28,6 +28,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 
@@ -36,6 +38,17 @@ class Fav(
 	private val allowHttp: Boolean = EnvUtil.getEnv(EnvUtil.FAV_ALLOW_HTTP, "false").toBoolean()
 ) {
 	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
+	private val baseUrl = EnvUtil.getEnv(EnvUtil.FAV_BASE_URL, "http://localhost:8080")
+
+	/**
+	 * Get the destination filename
+	 */
+	private fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
+
+	/**
+	 * Convert a string to be url safe
+	 */
+	private fun safe(string: String): String = URLEncoder.encode(string, StandardCharsets.UTF_8)
 
 	/**
 	 * Concurrently get and download a favicon
@@ -53,11 +66,9 @@ class Fav(
 			Log.w(javaClass, "Got no image for target: $path")
 			return@withContext
 		}
-		// Get the target file name
-		val name = uri.host.replace(".", "_")
 		try {
 			// Write the BufferedImage to disk as a png
-			val file = File("$dataPath${File.separator}$name.png")
+			val file = File("$dataPath${File.separator}${dest(path)}")
 			ImageIO.write(data, "png", file)
 			Log.i(javaClass, "Wrote data to path: ${file.absolutePath}")
 		}
@@ -74,13 +85,13 @@ class Fav(
 		var icon: String? = DirectNetworkLoader(debug).getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
 			GlobalScope.launch { downloadDomain(icon!!) }
-			return icon
+			return "$baseUrl/icon?site=${safe(domain)}"
 		}
 
 		icon = JsoupNetworkLoader(debug).getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
 			GlobalScope.launch { downloadDomain(icon) }
-			return icon
+			return "$baseUrl/icon?site=${safe(domain)}"
 		}
 
 		return null

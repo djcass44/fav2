@@ -9,6 +9,8 @@ module dev.castive.fav2 {
     requires com.fasterxml.jackson.module.kotlin;
     requires java.desktop;
     requires dev.castive.log2;
+    requires org.eclipse.jetty.http;
+    requires okhttp3;
 
     exports dev.castive.fav2;
 }
