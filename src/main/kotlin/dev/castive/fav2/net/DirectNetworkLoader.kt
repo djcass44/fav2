@@ -44,8 +44,11 @@ class DirectNetworkLoader(private val debug: Boolean): NetworkLoader {
 			if(debug) Log.v(javaClass, "Domain XHeader: $xHeader")
 			// Check that the response has a { Content-Type: 'image/...' } header
 			// This may need to be relaxed if websites don't use that mime
-			if(xHeader != null && xHeader.startsWith("image"))
+			if(xHeader != null && xHeader.startsWith("image")) {
+				r.close()
 				return target
+			}
+			r.close()
 			null
 		}
 		catch (e: Exception) {

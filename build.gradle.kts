@@ -43,7 +43,7 @@ dependencies {
 	implementation(kotlin("stdlib-jdk8:modular"))
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
 
-	implementation("com.github.djcass44:log2:8d56a6bd50")
+	implementation("com.github.djcass44:log2:7df051d775")
 	implementation("org.jsoup:jsoup:1.11.3")
 	implementation("com.squareup.okhttp3:okhttp:3.14.0")
 
