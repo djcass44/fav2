@@ -18,12 +18,19 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "1.3.40"
-	maven
+	kotlin("jvm") version "1.3.31"
+	java
+	application
+	id("org.beryx.jlink") version "2.4.3"
 }
 group = "dev.castive"
 version = "0.3"
+val moduleName by extra("dev.castive.fav2")
+val javaHome = System.getProperty("java.home")
 
+application {
+	mainClassName = "dev.castive.fav2.http.EntrypointKt"
+}
 
 repositories {
 	maven(url = "https://jitpack.io")
@@ -33,10 +40,10 @@ repositories {
 }
 
 dependencies {
-	implementation(kotlin("stdlib-jdk8"))
+	implementation(kotlin("stdlib-jdk8:modular"))
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
 
-	implementation("com.github.djcass44:log2:352d950dab")
+	implementation("com.github.djcass44:log2:develop-SNAPSHOT")
 	implementation("org.jsoup:jsoup:1.11.3")
 	implementation("com.squareup.okhttp3:okhttp:3.14.0")
 
@@ -50,10 +57,23 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")
 }
-
+configure<JavaPluginConvention> {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
 tasks {
 	withType<KotlinCompile>().all {
 		kotlinOptions.jvmTarget = "11"
+	}
+	withType<JavaCompile>().all {
+		inputs.property("moduleName", moduleName)
+		doFirst {
+			options.compilerArgs = listOf(
+				"--module-path", classpath.asPath,
+				"--patch-module", "$moduleName=${sourceSets["main"].output.asPath}"
+			)
+			classpath = files()
+		}
 	}
 	withType<Test> {
 		useJUnitPlatform()

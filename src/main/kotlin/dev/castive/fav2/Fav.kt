@@ -37,20 +37,26 @@ class Fav(
 ) {
 	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
 
+	/**
+	 * Concurrently get and download a favicon
+	 * The favicon is saved to disk for later use
+	 */
 	private suspend fun downloadDomain(path: String) = withContext(Dispatchers.IO) {
 		val uri = URI(path)
 		Log.i(javaClass, "Starting to download image at path: ${uri.toURL()}")
+		// Use ImageIO to load the image into a BufferedImage
 		val image = runCatching { ImageIO.read(uri.toURL()) }
 		val err = image.exceptionOrNull()
+		// Handle if the returned image is null
 		if (err != null) Log.e(javaClass, "Failed to load favicon data: $err")
 		val data = image.getOrNull() ?: run {
 			Log.w(javaClass, "Got no image for target: $path")
 			return@withContext
 		}
+		// Get the target file name
 		val name = uri.host.replace(".", "_")
-		val extension = uri.path.split(".").last()
-		Log.i(javaClass, "Got extension: $extension")
 		try {
+			// Write the BufferedImage to disk as a png
 			val file = File("$dataPath${File.separator}$name.png")
 			ImageIO.write(data, "png", file)
 			Log.i(javaClass, "Wrote data to path: ${file.absolutePath}")
