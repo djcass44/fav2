@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class FavTest {
 	@ParameterizedTest
@@ -31,27 +33,27 @@ class FavTest {
 		"https://apple.com"
 	])
 	fun getKnown(value: String) {
-		val icon = Fav().loadDomain(value)
-		Log.d(javaClass, icon.toString())
+		val icon = Fav().loadDomain(value, skipDownload = true)
+		Log.i(javaClass, "Icon: $icon")
 		assertNotNull(icon)
-		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico") || icon.endsWith("jpg") || icon.endsWith("jpeg"))
+		assertTrue(icon!!.endsWith(URLEncoder.encode(value, StandardCharsets.UTF_8)))
 	}
 
 	@Test
 	fun checkSecure() {
-		val fav = Fav(debug = false, allowHttp = false)
+		val fav = Fav(debug = false)
 		val allowed = fav.checkDomain("https://google.com")
 		assertTrue(allowed)
 	}
 	@Test
 	fun checkInsecure() {
-		val fav = Fav(debug = false, allowHttp = false)
+		val fav = Fav(debug = false)
 		val allowed = fav.checkDomain("http://google.com")
 		assertFalse(allowed)
 	}
 	@Test
 	fun checkInsecureAllowed() {
-		val fav = Fav(debug = false, allowHttp = true)
+		val fav = Fav(debug = false)
 		val allowed = fav.checkDomain("http://google.com")
 		assertTrue(allowed)
 	}

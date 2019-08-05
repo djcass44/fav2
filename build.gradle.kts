@@ -53,6 +53,8 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
 	implementation("org.slf4j:slf4j-simple:1.7.26")
 
+	implementation("com.google.guava:guava:28.0-jre")
+
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
 	testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")

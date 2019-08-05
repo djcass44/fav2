@@ -14,6 +14,7 @@ module dev.castive.fav2 {
 
     // required for ssl
     requires jdk.crypto.ec;
+    requires com.google.common;
 
     exports dev.castive.fav2;
 }

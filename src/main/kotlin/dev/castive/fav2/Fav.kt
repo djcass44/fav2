@@ -34,8 +34,7 @@ import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 
 class Fav(
-	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean(),
-	private val allowHttp: Boolean = EnvUtil.getEnv(EnvUtil.FAV_ALLOW_HTTP, "false").toBoolean()
+	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean()
 ) {
 	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
 	private val baseUrl = EnvUtil.getEnv(EnvUtil.FAV_BASE_URL, "http://localhost:8080")
@@ -80,18 +79,18 @@ class Fav(
 	fun loadDomain(domain: String, future: CompletableFuture<String?>) {
 		future.complete(loadDomain(domain))
 	}
-	fun loadDomain(domain: String): String? {
+	fun loadDomain(domain: String, skipDownload: Boolean = false): String? {
 		if(!checkDomain(domain)) return null
 		var icon: String? = DirectNetworkLoader().getIconPath(domain)
 		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
-			GlobalScope.launch { downloadDomain(icon!!) }
+			if(!skipDownload) GlobalScope.launch { downloadDomain(icon!!) }
 			return "$baseUrl/icon?site=${safe(domain)}"
 		}
 		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
 		icon = JsoupNetworkLoader(debug).getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
-			GlobalScope.launch { downloadDomain(icon) }
+			if(!skipDownload) GlobalScope.launch { downloadDomain(icon) }
 			return "$baseUrl/icon?site=${safe(domain)}"
 		}
 
@@ -119,8 +118,8 @@ class Fav(
 	}
 
 	internal fun checkDomain(domain: String): Boolean {
-		if(domain.startsWith("http://") && allowHttp && debug) Log.w(javaClass, "Loading of insecure origins is not recommended.")
-		return !domain.startsWith("http://") || allowHttp
+		if(domain.startsWith("http://") && debug) Log.w(javaClass, "Loading of insecure origins is not recommended.")
+		return !domain.startsWith("http://")
 	}
 
 	interface OnLoadedCallback {

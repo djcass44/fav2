@@ -7,7 +7,6 @@ internal object EnvUtil {
     }
 
     const val FAV_ALLOW_CORS = "FAV_ALLOW_CORS"
-    const val FAV_ALLOW_HTTP = "FAV_ALLOW_HTTP"
     const val FAV_DEBUG = "FAV_DEBUG"
     const val FAV_HTTP_PORT = "FAV_HTTP_PORT"
 	const val FAV_DATA = "FAV_DATA"
