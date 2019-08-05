@@ -26,14 +26,14 @@ WORKDIR /app
 COPY --from=GRADLE_CACHE /app/build/image .
 
 EXPOSE $FAV_HTTP_PORT
-VOLUME $FAV_DATA
 
 # Add Tini
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
-RUN chown -R ${USER}:${USER} $FAV_DATA /tini /app && \
+RUN mkdir -p $FAV_DATA && \
+    chown -R ${USER}:${USER} $FAV_DATA /tini /app && \
     chmod -R 755 $FAV_DATA
 USER ${USER}
 
