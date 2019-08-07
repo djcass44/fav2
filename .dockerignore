@@ -6,6 +6,8 @@
 # User-specific stuff
 data/*.png
 data/*.ico
+gradle
+build
 .idea
 .idea/**/tasks.xml
 .idea/**/usage.statistics.xml

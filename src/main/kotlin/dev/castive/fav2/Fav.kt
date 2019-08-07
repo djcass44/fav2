@@ -19,22 +19,80 @@ package dev.castive.fav2
 
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
+import dev.castive.fav2.util.EnvUtil
 import dev.castive.log2.Log
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.CompletableFuture
+import javax.imageio.ImageIO
 
-@Suppress("unused")
-object Fav {
-	var DEBUG = false
-	var ALLOW_HTTP = false
+class Fav(
+	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean()
+) {
+	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
+	private val baseUrl = EnvUtil.getEnv(EnvUtil.FAV_BASE_URL, "http://localhost:8080")
 
-	fun loadDomain(domain: String): String? {
+	/**
+	 * Get the destination filename
+	 */
+	private fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
+
+	/**
+	 * Convert a string to be url safe
+	 */
+	private fun safe(string: String): String = URLEncoder.encode(string, StandardCharsets.UTF_8)
+
+	/**
+	 * Concurrently get and download a favicon
+	 * The favicon is saved to disk for later use
+	 */
+	private suspend fun downloadDomain(path: String) = withContext(Dispatchers.IO) {
+		val uri = URI(path)
+		Log.i(javaClass, "Starting to download image at path: ${uri.toURL()}")
+		// Use ImageIO to load the image into a BufferedImage
+		val image = runCatching { ImageIO.read(uri.toURL()) }
+		val err = image.exceptionOrNull()
+		// Handle if the returned image is null
+		if (err != null) Log.e(javaClass, "Failed to load favicon data: $err")
+		val data = image.getOrNull() ?: run {
+			Log.w(javaClass, "Got no image for target: $path")
+			return@withContext
+		}
+		try {
+			// Write the BufferedImage to disk as a png
+			val file = File("$dataPath${File.separator}${dest(path)}")
+			ImageIO.write(data, "png", file)
+			Log.i(javaClass, "Wrote data to path: ${file.absolutePath}")
+		}
+		catch (e: IOException) {
+			Log.e(javaClass, "Failed to write data: $e")
+		}
+	}
+
+	fun loadDomain(domain: String, future: CompletableFuture<String?>) {
+		future.complete(loadDomain(domain))
+	}
+	fun loadDomain(domain: String, skipDownload: Boolean = false): String? {
 		if(!checkDomain(domain)) return null
 		var icon: String? = DirectNetworkLoader().getIconPath(domain)
-		if(icon != null && icon.isNotBlank()) return icon
-
-		icon = JsoupNetworkLoader().getIconPath(domain)
-		if(icon != null && icon.isNotBlank()) return icon
+		Log.i(javaClass, "Got icon address: $icon")
+		if(icon != null && icon.isNotBlank()) {
+			if(!skipDownload) GlobalScope.launch { downloadDomain(icon!!) }
+			return "$baseUrl/icon?site=${safe(domain)}"
+		}
+		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
+		icon = JsoupNetworkLoader(debug).getIconPath(domain)
+		if(icon != null && icon.isNotBlank()) {
+			if(!skipDownload) GlobalScope.launch { downloadDomain(icon) }
+			return "$baseUrl/icon?site=${safe(domain)}"
+		}
 
 		return null
 	}
@@ -50,7 +108,7 @@ object Fav {
 				return@launch
 			}
 			// if we found nothing, fallback to the slower DOM analysis
-			icon = JsoupNetworkLoader().getIconPath(domain)
+			icon = JsoupNetworkLoader(debug).getIconPath(domain)
 			if(icon != null && icon.isNotBlank()) {
 				callback.onLoad(icon)
 				return@launch
@@ -60,8 +118,8 @@ object Fav {
 	}
 
 	internal fun checkDomain(domain: String): Boolean {
-		if(domain.startsWith("http://") && ALLOW_HTTP && DEBUG) Log.w(javaClass, "Loading of insecure origins is not recommended.")
-		return !domain.startsWith("http://") || ALLOW_HTTP
+		if(domain.startsWith("http://") && debug) Log.w(javaClass, "Loading of insecure origins is not recommended.")
+		return !domain.startsWith("http://")
 	}
 
 	interface OnLoadedCallback {
