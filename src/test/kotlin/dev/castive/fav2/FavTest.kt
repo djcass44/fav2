@@ -51,10 +51,4 @@ class FavTest {
 		val allowed = fav.checkDomain("http://google.com")
 		assertFalse(allowed)
 	}
-	@Test
-	fun checkInsecureAllowed() {
-		val fav = Fav(debug = false)
-		val allowed = fav.checkDomain("http://google.com")
-		assertTrue(allowed)
-	}
 }

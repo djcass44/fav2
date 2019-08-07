@@ -15,13 +15,17 @@
  *
  */
 
+import org.ajoberstar.grgit.Grgit
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	kotlin("jvm") version "1.3.31"
 	java
 	application
+	jacoco
 	id("org.beryx.jlink") version "2.4.3"
+	id("org.sonarqube") version "2.7.1"
+	id("org.ajoberstar.grgit") version "1.7.2"
 }
 group = "dev.castive"
 version = "0.3"
@@ -30,6 +34,9 @@ val javaHome = System.getProperty("java.home")
 
 application {
 	mainClassName = "dev.castive.fav2.http.EntrypointKt"
+	applicationDefaultJvmArgs = listOf(
+		"-Djava.util.logging.config.file=src/main/resources/logging.properties"
+	)
 }
 
 repositories {
@@ -79,5 +86,35 @@ tasks {
 	}
 	withType<Test> {
 		useJUnitPlatform()
+	}
+}
+jacoco {
+	toolVersion = "0.8.4"
+}
+task("buildPackage") {
+	println("Building package...")
+	finalizedBy("increment-patch", "shadowJar")
+}
+val codeCoverageReport by tasks.creating(JacocoReport::class) { dependsOn("test") }
+
+sonarqube {
+	val git = runCatching { Grgit.open(project.rootDir) }.getOrNull()
+	// Don't run an analysis if we can't get git context
+	val name = (if(git == null) null else runCatching { git.branch.current.name }.getOrNull())
+	val target = when(name) {
+		null -> null
+		"develop" -> "master"
+		else -> "develop"
+	}
+	val branch = if(name != null && target != null) Pair(name, target) else null
+	this.isSkipProject = branch == null
+	properties{
+		property("sonar.projectKey", "djcass44:fav2")
+		property("sonar.projectName", "djcass44/fav2")
+		if(branch != null) {
+			property("sonar.branch.name", branch.first)
+			property("sonar.branch.target", branch.second)
+		}
+		property("sonar.junit.reportsPath", "$projectDir/build/test-results")
 	}
 }

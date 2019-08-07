@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2019 Django Cass
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package dev.castive.fav2.http.api
 
 import com.google.common.util.concurrent.RateLimiter
@@ -18,6 +34,10 @@ import java.net.URI
 import java.util.concurrent.CompletableFuture
 
 class Icons(private val fav: Fav = Fav()): EndpointGroup {
+	companion object {
+		const val prefixSecure = "https://"
+	}
+
 	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
 
 	private val limit = RateLimiter.create(5.0)
@@ -36,7 +56,7 @@ class Icons(private val fav: Fav = Fav()): EndpointGroup {
 			Log.v(javaClass, "Got GET request permit in $timeForPermit")
 			val domain = getBestUrl(getSiteParam(ctx))
 			Log.i(javaClass, "Got request for domain: $domain")
-			if(!domain.startsWith("https://")) throw BadRequestResponse("Only HTTPS domains will be accepted.")
+			if(!domain.startsWith(prefixSecure)) throw BadRequestResponse("Only HTTPS domains will be accepted.")
 			val targetFile = try {
 				File("$dataPath${File.separator}${URI(domain).host.replace(".", "_")}.png")
 			}
@@ -65,9 +85,9 @@ class Icons(private val fav: Fav = Fav()): EndpointGroup {
 	}
 
 	private fun getBestUrl(url: String): String {
-		if(url.startsWith("http://")) throw BadRequestResponse("Insecure domains will not be accepted.")
+		if(url.startsWith(prefixSecure)) throw BadRequestResponse("Insecure domains will not be accepted.")
 		val builder = StringBuilder()
-		if(!url.startsWith("https://")) builder.append("https://").append(url)
+		if(!url.startsWith(prefixSecure)) builder.append(prefixSecure).append(url)
 		else builder.append(url)
 		if(!url.endsWith("/")) builder.append("/")
 		return builder.toString()
