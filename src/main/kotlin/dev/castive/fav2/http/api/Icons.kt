@@ -36,6 +36,7 @@ import java.util.concurrent.CompletableFuture
 class Icons(private val fav: Fav = Fav()): EndpointGroup {
 	companion object {
 		const val prefixSecure = "https://"
+		const val prefixInsecure = "http://"
 	}
 
 	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
@@ -80,12 +81,12 @@ class Icons(private val fav: Fav = Fav()): EndpointGroup {
 	 */
 	private fun getSiteParam(ctx: Context): String {
 		val domain = ctx.queryParam("site", String::class.java, "").getOrNull()
-		if(domain.isNullOrBlank()) throw BadRequestResponse("?site may not be null, empty or only whitespace")
+		if(domain.isNullOrBlank()) throw BadRequestResponse("'site' query may be null, empty or only whitespace")
 		return domain
 	}
 
-	private fun getBestUrl(url: String): String {
-		if(url.startsWith(prefixSecure)) throw BadRequestResponse("Insecure domains will not be accepted.")
+	internal fun getBestUrl(url: String): String {
+		if(url.startsWith(prefixInsecure)) throw BadRequestResponse("Insecure domains will not be accepted.")
 		val builder = StringBuilder()
 		if(!url.startsWith(prefixSecure)) builder.append(prefixSecure).append(url)
 		else builder.append(url)

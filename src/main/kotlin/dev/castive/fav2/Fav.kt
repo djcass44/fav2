@@ -20,6 +20,7 @@ package dev.castive.fav2
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
 import dev.castive.fav2.util.EnvUtil
+import dev.castive.fav2.util.safe
 import dev.castive.log2.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -43,11 +44,6 @@ class Fav(
 	 * Get the destination filename
 	 */
 	private fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
-
-	/**
-	 * Convert a string to be url safe
-	 */
-	private fun safe(string: String): String = URLEncoder.encode(string, StandardCharsets.UTF_8)
 
 	/**
 	 * Concurrently get and download a favicon
@@ -85,13 +81,13 @@ class Fav(
 		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
 			if(!skipDownload) GlobalScope.launch { downloadDomain(icon!!) }
-			return "$baseUrl/icon?site=${safe(domain)}"
+			return "$baseUrl/icon?site=${domain.safe()}"
 		}
 		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
 		icon = JsoupNetworkLoader(debug).getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
 			if(!skipDownload) GlobalScope.launch { downloadDomain(icon) }
-			return "$baseUrl/icon?site=${safe(domain)}"
+			return "$baseUrl/icon?site=${domain.safe()}"
 		}
 
 		return null

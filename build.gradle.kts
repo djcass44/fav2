@@ -46,6 +46,8 @@ repositories {
 	maven(url = "https://dl.bintray.com/nitram509/jbrotli/")
 }
 
+val junitVersion: String by project
+
 dependencies {
 	implementation(kotlin("stdlib-jdk8:modular"))
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
@@ -62,9 +64,11 @@ dependencies {
 
 	implementation("com.google.guava:guava:28.0-jre")
 
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
-	testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+	testImplementation("org.jetbrains.kotlin:kotlin-test:1.3.31")
+
+	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 configure<JavaPluginConvention> {
 	sourceCompatibility = JavaVersion.VERSION_11
@@ -91,11 +95,9 @@ tasks {
 jacoco {
 	toolVersion = "0.8.4"
 }
-task("buildPackage") {
-	println("Building package...")
-	finalizedBy("increment-patch", "shadowJar")
+val codeCoverageReport by tasks.creating(JacocoReport::class) {
+	dependsOn("test")
 }
-val codeCoverageReport by tasks.creating(JacocoReport::class) { dependsOn("test") }
 
 sonarqube {
 	val git = runCatching { Grgit.open(project.rootDir) }.getOrNull()
@@ -111,10 +113,10 @@ sonarqube {
 	properties{
 		property("sonar.projectKey", "djcass44:fav2")
 		property("sonar.projectName", "djcass44/fav2")
-		if(branch != null) {
-			property("sonar.branch.name", branch.first)
-			property("sonar.branch.target", branch.second)
-		}
+//		if(branch != null) {
+//			property("sonar.branch.name", branch.first)
+//			property("sonar.branch.target", branch.second)
+//		}
 		property("sonar.junit.reportsPath", "$projectDir/build/test-results")
 	}
 }
