@@ -17,6 +17,7 @@
 
 import org.ajoberstar.grgit.Grgit
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.sonarqube.gradle.SonarQubeTask
 
 plugins {
 	kotlin("jvm") version "1.3.31"
@@ -91,6 +92,12 @@ tasks {
 	withType<Test> {
 		useJUnitPlatform()
 	}
+	withType<JacocoReport> {
+		reports {
+			xml.isEnabled = true
+		}
+	}
+	withType<SonarQubeTask> { dependsOn("test", "jacocoTestReport") }
 }
 jacoco {
 	toolVersion = "0.8.4"
@@ -117,6 +124,6 @@ sonarqube {
 //			property("sonar.branch.name", branch.first)
 //			property("sonar.branch.target", branch.second)
 //		}
-		property("sonar.junit.reportsPath", "$projectDir/build/test-results")
+		property("sonar.jacoco.xmlReportPaths", "$projectDir/build/test-results/test")
 	}
 }

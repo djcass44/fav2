@@ -21,5 +21,7 @@ import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking {
     // Start the HTTP server
-    launch { App().start() }.join()
+    launch {
+        App().start()
+    }.join()
 }

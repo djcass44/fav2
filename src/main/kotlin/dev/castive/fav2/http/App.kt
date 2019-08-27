@@ -21,9 +21,11 @@ import dev.castive.fav2.http.api.Icons
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.log2.Log
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder
 import io.javalin.http.HandlerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.eclipse.jetty.http.HttpStatus
 
 class App {
 	/**
@@ -44,7 +46,12 @@ class App {
         }
 	        // returns 200 OK
 	        .addHandler(HandlerType.GET, "/healthz", Health.get)
-	        .routes { Icons().addEndpoints() }
+	        .routes {
+		        Icons().addEndpoints()
+		        ApiBuilder.get("/") { ctx ->
+			        ctx.status(HttpStatus.OK_200).result("This application only provides an API, you probably want to have a look at the README (https://github.com/djcass44/fav2/blob/master/README.md)")
+		        }
+	        }
 	        // Start on 8080 unless overridden by environment variable
 	        .start(EnvUtil.getEnv(EnvUtil.FAV_HTTP_PORT, "8080").toIntOrNull() ?: 8080)
 	    return@withContext
