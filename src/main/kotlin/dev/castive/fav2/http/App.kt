@@ -16,9 +16,12 @@
 
 package dev.castive.fav2.http
 
+import dev.castive.fav2.Fav
+import dev.castive.fav2.TimedCache
 import dev.castive.fav2.http.api.Health
 import dev.castive.fav2.http.api.Icons
 import dev.castive.fav2.util.EnvUtil
+import dev.castive.fav2.util.env
 import dev.castive.log2.Log
 import io.javalin.Javalin
 import io.javalin.http.HandlerType
@@ -35,7 +38,11 @@ class App {
 	 * Starts the HTTP server
 	 */
     suspend fun start(): Unit = withContext(Dispatchers.Default) {
-		val icons = Icons()
+		val icons = Icons(cache = TimedCache(
+			listener = Fav.cacheListener,
+			ageLimit = EnvUtil.FAV_CACHE_LIMIT.env("30").toIntOrNull() ?: 30,
+			tickDelay = EnvUtil.FAV_CACHE_TICK.env("10000").toLongOrNull() ?: 10_000L
+		))
         Javalin.create { config ->
 	        // custom Javalin configuration
             config.apply {

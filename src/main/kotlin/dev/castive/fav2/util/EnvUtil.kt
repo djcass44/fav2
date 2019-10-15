@@ -27,4 +27,7 @@ internal object EnvUtil {
     const val FAV_HTTP_PORT = "FAV_HTTP_PORT"
 	const val FAV_DATA = "FAV_DATA"
     const val FAV_BASE_URL = "FAV_BASE_URL"
+
+    const val FAV_CACHE_TICK = "FAV_CACHE_TICK"
+    const val FAV_CACHE_LIMIT = "FAV_CACHE_LIMIT"
 }

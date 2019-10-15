@@ -18,6 +18,7 @@
 package dev.castive.fav2.net
 
 import dev.castive.log2.Log
+import dev.castive.log2.loge
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
@@ -26,14 +27,16 @@ class DirectNetworkLoader : NetworkLoader {
 	private val imageMimes = arrayListOf("png", "ico")
 	private val client = OkHttpClient()
 
-	override fun getIconPath(domain: String): String {
+	override fun getIconPath(domain: String): String = try {
 		val uri = URI(domain)
 		val host = "${uri.scheme}://${uri.host}"
-		for (mime in imageMimes) {
-			val res = getIcon("$host/favicon.$mime")
-			if(res != null) return res
-		}
-		return ""
+		imageMimes.mapNotNull {
+			getIcon("$host/favicon.$it")
+		}.firstOrNull() ?: ""
+	}
+	catch (e: Exception) {
+		"Failed to get icon path: $domain".loge(javaClass)
+		""
 	}
 	private fun getIcon(target: String): String? {
 		Log.d(javaClass, "Targeting host $target")
