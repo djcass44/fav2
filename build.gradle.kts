@@ -20,18 +20,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.sonarqube.gradle.SonarQubeTask
 
 plugins {
-	kotlin("jvm") version "1.3.31"
+	kotlin("jvm") version "1.3.50"
 	java
 	application
 	jacoco
-	id("org.beryx.jlink") version "2.4.3"
-	id("org.sonarqube") version "2.7.1"
+	id("org.beryx.jlink") version "2.16.0"
+	id("org.sonarqube") version "2.8"
 	id("org.ajoberstar.grgit") version "1.7.2"
+	id("com.github.ben-manes.versions") version "0.26.0"
 }
 group = "dev.castive"
 version = "0.3"
 val moduleName by extra("dev.castive.fav2")
-val javaHome = System.getProperty("java.home")
+val javaHome: String = System.getProperty("java.home")
 
 application {
 	mainClassName = "dev.castive.fav2.http.EntrypointKt"
@@ -44,40 +45,41 @@ repositories {
 	maven(url = "https://jitpack.io")
 	mavenCentral()
 	jcenter()
-	maven(url = "https://dl.bintray.com/nitram509/jbrotli/")
 }
 
+val kotlinVersion: String by project
 val junitVersion: String by project
 
 dependencies {
-	implementation(kotlin("stdlib-jdk8:modular"))
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
+	implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
 
-	implementation("com.github.djcass44:log2:7df051d775")
-	implementation("org.jsoup:jsoup:1.11.3")
+	implementation("com.github.djcass44:log2:3.4")
+	implementation("org.jsoup:jsoup:1.12.1")
 	implementation("com.squareup.okhttp3:okhttp:3.14.0")
 
-	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.1")
+	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.2")
 
-	implementation("io.javalin:javalin:3.2.0")
+	implementation("io.javalin:javalin:3.5.0")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
 	implementation("org.slf4j:slf4j-simple:1.7.26")
 
-	implementation("com.google.guava:guava:28.0-jre")
+	implementation("com.google.guava:guava:28.1-jre")
 
-	testImplementation("org.jetbrains.kotlin:kotlin-test:1.3.31")
+	// testing
+	testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 configure<JavaPluginConvention> {
-	sourceCompatibility = JavaVersion.VERSION_11
-	targetCompatibility = JavaVersion.VERSION_11
+	sourceCompatibility = JavaVersion.VERSION_12
+	targetCompatibility = JavaVersion.VERSION_12
 }
 tasks {
 	withType<KotlinCompile>().all {
-		kotlinOptions.jvmTarget = "11"
+		kotlinOptions.jvmTarget = "12"
 	}
 	withType<JavaCompile>().all {
 		inputs.property("moduleName", moduleName)
