@@ -15,6 +15,10 @@ module dev.castive.fav2 {
     // required for ssl
     requires jdk.crypto.ec;
     requires com.google.common;
+    requires io.swagger.v3.oas.models;
+    requires java.xml.bind;
 
+
+    opens dev.castive.fav2.http to io.javalin;
     exports dev.castive.fav2;
 }

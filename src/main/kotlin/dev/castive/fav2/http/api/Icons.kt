@@ -20,11 +20,13 @@ import com.google.common.util.concurrent.RateLimiter
 import dev.castive.fav2.Fav
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.log2.Log
-import io.javalin.apibuilder.ApiBuilder
-import io.javalin.apibuilder.EndpointGroup
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.NotFoundResponse
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.eclipse.jetty.http.HttpStatus
@@ -33,7 +35,7 @@ import java.io.FileInputStream
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 
-class Icons(private val fav: Fav = Fav()): EndpointGroup {
+class Icons(private val fav: Fav = Fav()) {
 	companion object {
 		const val prefixSecure = "https://"
 		const val prefixInsecure = "http://"
@@ -43,37 +45,61 @@ class Icons(private val fav: Fav = Fav()): EndpointGroup {
 
 	private val limit = RateLimiter.create(5.0)
 
-	override fun addEndpoints() {
-		ApiBuilder.post("/icon") { ctx ->
-			val timeForPermit = limit.acquire()
-			Log.v(javaClass, "Got POST request permit in $timeForPermit")
-			val domain = getSiteParam(ctx)
-			val future = CompletableFuture<String?>()
-			GlobalScope.launch { fav.loadDomain(domain, future) }
-			ctx.status(HttpStatus.OK_200).result(future)
+	@OpenApi(
+		summary = "Post icon",
+		description = "Tell the api to load a favicon",
+		tags = ["icon"],
+		responses = [
+			OpenApiResponse("200", [OpenApiContent()], description = "Api has accepted the job"),
+			OpenApiResponse("500", [OpenApiContent()], description = "Something went wrong")
+		],
+		queryParams = [
+			OpenApiParam("site", required = true, allowEmptyValue = false)
+		]
+	)
+	fun postIcon(ctx: Context) {
+		val timeForPermit = limit.acquire()
+		Log.v(javaClass, "Got POST request permit in $timeForPermit")
+		val domain = getSiteParam(ctx)
+		val future = CompletableFuture<String?>()
+		GlobalScope.launch { fav.loadDomain(domain, future) }
+		ctx.status(HttpStatus.OK_200).result(future)
+	}
+	@OpenApi(
+		summary = "Get icon",
+		description = "Serves an icon as an image",
+		tags = ["icon"],
+		responses = [
+			OpenApiResponse("200", [OpenApiContent()], description = "Image loaded"),
+			OpenApiResponse("400", [OpenApiContent()], description = "Bad request"),
+			OpenApiResponse("404", [OpenApiContent()], description = "Image hasn't been downloaded yet"),
+			OpenApiResponse("500", [OpenApiContent()], description = "Something went wrong")
+		],
+		queryParams = [
+			OpenApiParam("site", required = true, allowEmptyValue = false)
+		]
+	)
+	fun getIcon(ctx: Context) {
+		val timeForPermit = limit.acquire()
+		Log.v(javaClass, "Got GET request permit in $timeForPermit")
+		val domain = getBestUrl(getSiteParam(ctx))
+		Log.i(javaClass, "Got request for domain: $domain")
+		if(!domain.startsWith(prefixSecure)) throw BadRequestResponse("Only HTTPS domains will be accepted.")
+		val targetFile = try {
+			File("$dataPath${File.separator}${URI(domain).host.replace(".", "_")}.png")
 		}
-		ApiBuilder.get("/icon") { ctx ->
-			val timeForPermit = limit.acquire()
-			Log.v(javaClass, "Got GET request permit in $timeForPermit")
-			val domain = getBestUrl(getSiteParam(ctx))
-			Log.i(javaClass, "Got request for domain: $domain")
-			if(!domain.startsWith(prefixSecure)) throw BadRequestResponse("Only HTTPS domains will be accepted.")
-			val targetFile = try {
-				File("$dataPath${File.separator}${URI(domain).host.replace(".", "_")}.png")
-			}
-			catch (e: Exception) {
-				e.printStackTrace()
-				throw BadRequestResponse("Invalid target url: $domain")
-			}
-			Log.i(javaClass, "Serving file: ${targetFile.absolutePath}")
-			if(!targetFile.exists()) run {
-				// The user has requested a url which we haven't downloaded yet, so download it for next time
-				GlobalScope.launch { fav.loadDomain(domain) }
-				throw NotFoundResponse("That icon hasn't been downloaded yet")
-			}
-			val data = FileInputStream(targetFile)
-			ctx.status(HttpStatus.OK_200).contentType("image/png").result(data)
+		catch (e: Exception) {
+			e.printStackTrace()
+			throw BadRequestResponse("Invalid target url: $domain")
 		}
+		Log.i(javaClass, "Serving file: ${targetFile.absolutePath}")
+		if(!targetFile.exists()) run {
+			// The user has requested a url which we haven't downloaded yet, so download it for next time
+			GlobalScope.launch { fav.loadDomain(domain) }
+			throw NotFoundResponse("That icon hasn't been downloaded yet")
+		}
+		val data = FileInputStream(targetFile)
+		ctx.status(HttpStatus.OK_200).contentType("image/png").result(data)
 	}
 
 	/**

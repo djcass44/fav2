@@ -21,17 +21,21 @@ import dev.castive.fav2.http.api.Icons
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.log2.Log
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder
 import io.javalin.http.HandlerType
+import io.javalin.plugin.openapi.OpenApiOptions
+import io.javalin.plugin.openapi.OpenApiPlugin
+import io.javalin.plugin.openapi.ui.SwaggerOptions
+import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.info.License
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.eclipse.jetty.http.HttpStatus
 
 class App {
 	/**
 	 * Starts the HTTP server
 	 */
     suspend fun start(): Unit = withContext(Dispatchers.Default) {
+		val icons = Icons()
         Javalin.create { config ->
 	        // custom Javalin configuration
             config.apply {
@@ -42,18 +46,22 @@ class App {
 		            // log requests to the console
 		            Log.i(javaClass, "${System.currentTimeMillis()} - ${ctx.method()} ${ctx.path()} took $timeMs ms")
 	            }
+	            registerPlugin(OpenApiPlugin(getOpenApiOptions()))
             }
         }
 	        // returns 200 OK
-	        .addHandler(HandlerType.GET, "/healthz", Health.get)
-	        .routes {
-		        Icons().addEndpoints()
-		        ApiBuilder.get("/") { ctx ->
-			        ctx.status(HttpStatus.OK_200).result("This application only provides an API, you probably want to have a look at the README (https://github.com/djcass44/fav2/blob/master/README.md)")
-		        }
-	        }
+	        .addHandler(HandlerType.GET, "/healthz", Health()::get)
+	        .addHandler(HandlerType.GET, "/icon", icons::getIcon)
+	        .addHandler(HandlerType.POST, "/icon", icons::postIcon)
 	        // Start on 8080 unless overridden by environment variable
 	        .start(EnvUtil.getEnv(EnvUtil.FAV_HTTP_PORT, "8080").toIntOrNull() ?: 8080)
 	    return@withContext
     }
+
+	private fun getOpenApiOptions() = OpenApiOptions(Info().apply {
+		license = License().name("Apache License 2.0").url("https://www.apache.org/licenses/LICENSE-2.0.html")
+		title = "Fav2"
+		version = "0.3"
+		description = "Microservice for loading favicons"
+	}).path("/swagger-docs").swagger(SwaggerOptions("/"))
 }

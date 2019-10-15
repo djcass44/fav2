@@ -51,8 +51,10 @@ val kotlinVersion: String by project
 val junitVersion: String by project
 
 dependencies {
+	// standard library
 	implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
+	implementation("com.sun.activation:javax.activation:1.2.0")
 
 	implementation("com.github.djcass44:log2:3.4")
 	implementation("org.jsoup:jsoup:1.12.1")
@@ -65,6 +67,10 @@ dependencies {
 	implementation("org.slf4j:slf4j-simple:1.7.26")
 
 	implementation("com.google.guava:guava:28.1-jre")
+
+	// swagger
+	implementation("io.swagger.core.v3:swagger-core:2.0.8")
+	implementation("org.webjars:swagger-ui:3.23.8")
 
 	// testing
 	testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
