@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 100
+        runAsUser: 100
+        runAsGroup: 101
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      {{ if .Values.claimName }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ .Values.claimName }}
+      {{ end }}
+      containers:
+      - env:
+        {{- range $key, $value := .Values.ssl }}
+        - name: {{ $key }}
+          value:  {{ $value | quote }}
+        {{- end }}
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value:  {{ $value | quote }}
+        {{- end }}
+        image: "{{ .Values.images.api.repository }}:{{ .Values.images.api.tag }}"
+        imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+        name: {{ .Values.name }}
+        ports:
+        - containerPort: {{ .Values.env.FAV_HTTP_PORT }}
+          name: http
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+        {{ if .Values.claimName }}
+        - mountPath: {{ .Values.env.FAV_DATA | quote }}
+          name: data
+        {{ end }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 250Mi
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.env.FAV_HTTP_PORT }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          runAsNonRoot: true
+          privileged: false
+          capabilities:
+            drop:
+              - all
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+      restartPolicy: Always

@@ -1,0 +1,17 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}
+  annotations:
+   ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: {{ .Values.name }}
+            servicePort: {{ .Values.env.FAV_HTTP_PORT }}
+{{- end }}

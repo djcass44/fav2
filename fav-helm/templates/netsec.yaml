@@ -1,0 +1,25 @@
+{{- if .Values.netsec.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.name }}
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            {{- range $key, $val := .Values.netsec.source }}
+            {{ $key }}: {{ $val }}
+            {{- end}}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.env.FAV_HTTP_PORT }}
+  egress:
+  - {}
+  policyTypes:
+  - Egress
+  - Ingress
+{{- end }}

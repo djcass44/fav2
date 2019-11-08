@@ -1,0 +1,40 @@
+name: fav2
+
+replicas: 1
+
+# PVC to use
+claimName: fav
+
+# ssl configuration
+ssl:
+  FAV_SSL_ENABLED: false
+  FAV_SSL_KEYSTORE: "/data/keystore.jks"
+  FAV_SSL_PASSWORD: password
+  FAV_HTTP2: true
+# arbitrary environment variables to inject to the API pod
+# this can be extended
+env:
+  FAV_ALLOW_CORS: false
+  FAV_DEBUG: false
+  FAV_HTTP_PORT: 8080
+  FAV_DATA: "/data"
+  FAV_BASE_URL: "https://icon.jmp.castive.dev"
+
+
+images:
+  api:
+    repository: "docker.io/djcass44/fav2"
+    tag: latest
+    pullPolicy: Always
+
+ingress:
+  enabled: true
+  host: icon.jmp.castive.dev
+
+
+# network policy
+netsec:
+  enabled: true
+  # label to allow traffic from
+  source:
+    app: traefik
