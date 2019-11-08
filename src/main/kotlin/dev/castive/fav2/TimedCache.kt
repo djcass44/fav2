@@ -85,10 +85,13 @@ class TimedCache<K, V>(
 		staleItems.forEach {
 			cache.remove(it)
 		}
+		if(staleItems.size > 0)
+			"Removed ${staleItems.size} items".logi(javaClass)
 	}
 
 	private suspend fun onClose() = withContext(Dispatchers.Default) {
 		"Purging TimedCache, this may take a moment".loga(javaClass)
+		"Purging ${cache.size} items [reason: SHUTDOWN]".logi(javaClass)
 		cache.forEach { (t: K, u: Pair<Int, V>) ->
 			listener?.onAgeLimitReached(t, u.second)
 		}

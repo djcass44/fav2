@@ -22,10 +22,13 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.awt.image.BufferedImage
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class FavTest {
+	private val cache = TimedCache<String, BufferedImage>()
+
 	@ParameterizedTest
 	@ValueSource(strings = [
 		"https://github.com",
@@ -33,7 +36,7 @@ class FavTest {
 		"https://apple.com"
 	])
 	fun getKnown(value: String) {
-		val icon = Fav().loadDomain(value, skipDownload = true)
+		val icon = Fav(cache = cache).loadDomain(value, skipDownload = true)
 		Log.i(javaClass, "Icon: $icon")
 		assertNotNull(icon)
 		assertTrue(icon!!.endsWith(URLEncoder.encode(value, StandardCharsets.UTF_8)))
@@ -41,13 +44,13 @@ class FavTest {
 
 	@Test
 	fun checkSecure() {
-		val fav = Fav(debug = false)
+		val fav = Fav(debug = false, cache = cache)
 		val allowed = fav.checkDomain("https://google.com")
 		assertTrue(allowed)
 	}
 	@Test
 	fun checkInsecure() {
-		val fav = Fav(debug = false)
+		val fav = Fav(debug = false, cache =  cache)
 		val allowed = fav.checkDomain("http://google.com")
 		assertFalse(allowed)
 	}

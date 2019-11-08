@@ -20,6 +20,7 @@ import dev.castive.fav2.Fav
 import dev.castive.fav2.TimedCache
 import dev.castive.fav2.http.api.Health
 import dev.castive.fav2.http.api.Icons
+import dev.castive.fav2.http.config.ServerConfig
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.fav2.util.env
 import dev.castive.log2.Log
@@ -38,14 +39,19 @@ class App {
 	 * Starts the HTTP server
 	 */
     suspend fun start(): Unit = withContext(Dispatchers.Default) {
+		val port = EnvUtil.getEnv(EnvUtil.FAV_HTTP_PORT, "8080").toIntOrNull() ?: 8080
 		val icons = Icons(cache = TimedCache(
 			listener = Fav.cacheListener,
-			ageLimit = EnvUtil.FAV_CACHE_LIMIT.env("30").toIntOrNull() ?: 30,
+			ageLimit = EnvUtil.FAV_CACHE_LIMIT.env("60").toIntOrNull() ?: 60,
 			tickDelay = EnvUtil.FAV_CACHE_TICK.env("10000").toLongOrNull() ?: 10_000L
 		))
         Javalin.create { config ->
 	        // custom Javalin configuration
             config.apply {
+	            server {
+		            // get our customised server
+		            ServerConfig(port).getServer()
+	            }
                 showJavalinBanner = false
 	            // allow cors requests ONLY when explicitly enabled
                 if(EnvUtil.getEnv(EnvUtil.FAV_ALLOW_CORS, "false").toBoolean()) enableCorsForAllOrigins()
@@ -61,7 +67,7 @@ class App {
 	        .addHandler(HandlerType.GET, "/icon", icons::getIcon)
 	        .addHandler(HandlerType.POST, "/icon", icons::postIcon)
 	        // Start on 8080 unless overridden by environment variable
-	        .start(EnvUtil.getEnv(EnvUtil.FAV_HTTP_PORT, "8080").toIntOrNull() ?: 8080)
+	        .start(port)
 	    return@withContext
     }
 

@@ -2,7 +2,21 @@ kind: pipeline
 name: default
 
 steps:
-- name: test
-  image: gradle/jdk11-slim
-  commands:
-  - gradle test
+  - name: test
+    image: gradle:jdk12
+    commands:
+      - gradle test
+  - name: docker
+    image: plugins/docker
+    settings:
+      repo: djcass44/fav2
+      tags:
+        - latest
+        - ${DRONE_BRANCH}
+      username:
+        from_secret: DOCKER_USERNAME
+      password:
+        from_secret: DOCKER_PASSWORD
+trigger:
+  when:
+    event: push

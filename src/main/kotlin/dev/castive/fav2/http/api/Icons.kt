@@ -22,6 +22,7 @@ import dev.castive.fav2.TimedCache
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.log2.Log
 import dev.castive.log2.logi
+import dev.castive.log2.logv
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.NotFoundResponse
@@ -72,7 +73,9 @@ class Icons(
 		Log.v(javaClass, "Got POST request permit in $timeForPermit")
 		val domain = getSiteParam(ctx)
 		val future = CompletableFuture<String?>()
-		GlobalScope.launch { fav.loadDomain(domain, future) }
+		GlobalScope.launch {
+			fav.loadDomain(domain, future)
+		}
 		ctx.status(HttpStatus.OK_200).result(future)
 	}
 	@OpenApi(
@@ -121,6 +124,7 @@ class Icons(
 			// load the file into the cache
 			GlobalScope.launch {
 				withContext(Dispatchers.IO) {
+					"Loading item $name into cache from disk".logv(javaClass)
 					cache[name] = ImageIO.read(targetFile)
 				}
 			}

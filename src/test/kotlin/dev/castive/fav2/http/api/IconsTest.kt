@@ -16,19 +16,23 @@
 
 package dev.castive.fav2.http.api
 
+import dev.castive.fav2.TimedCache
 import io.javalin.http.BadRequestResponse
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.awt.image.BufferedImage
 
 class IconsTest {
+	private val cache = TimedCache<String, BufferedImage>()
+
     /**
      * test that a secure-url with a backslash ending is exactly the same
      */
     @Test
     fun `test valid secure url with backslash`() {
         val url = "https://google.com/"
-        val bestUrl = Icons().getBestUrl(url)
+        val bestUrl = Icons(cache).getBestUrl(url)
         Assertions.assertEquals(url, bestUrl)
     }
 
@@ -38,7 +42,7 @@ class IconsTest {
     @Test
     fun `test valid secure url without backslash`() {
         val url = "https://google.com"
-        val bestUrl = Icons().getBestUrl(url)
+        val bestUrl = Icons(cache).getBestUrl(url)
         Assertions.assertEquals("${url}/", bestUrl)
     }
 
@@ -48,7 +52,7 @@ class IconsTest {
     @Test
     fun `test secure url without scheme`() {
         val url = "google.com"
-        val bestUrl = Icons().getBestUrl(url)
+        val bestUrl = Icons(cache).getBestUrl(url)
         Assertions.assertEquals("https://google.com/", bestUrl)
     }
 
@@ -59,7 +63,7 @@ class IconsTest {
     fun `test insecure url`() {
         val url = "http://google.com"
         assertThrows<BadRequestResponse> {
-            Icons().getBestUrl(url)
+            Icons(cache).getBestUrl(url)
         }
     }
 }

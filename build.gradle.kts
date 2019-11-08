@@ -15,22 +15,18 @@
  *
  */
 
-import org.ajoberstar.grgit.Grgit
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.sonarqube.gradle.SonarQubeTask
 
 plugins {
 	kotlin("jvm") version "1.3.50"
 	java
 	application
-	jacoco
 	id("org.beryx.jlink") version "2.16.0"
-	id("org.sonarqube") version "2.8"
-	id("org.ajoberstar.grgit") version "1.7.2"
 	id("com.github.ben-manes.versions") version "0.26.0"
 }
 group = "dev.castive"
 version = "0.3"
+
 val moduleName by extra("dev.castive.fav2")
 val javaHome: String = System.getProperty("java.home")
 
@@ -49,6 +45,7 @@ repositories {
 
 val kotlinVersion: String by project
 val junitVersion: String by project
+val jettyVersion: String by project
 
 dependencies {
 	// standard library
@@ -65,6 +62,12 @@ dependencies {
 	implementation("io.javalin:javalin:3.5.0")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
 	implementation("org.slf4j:slf4j-simple:1.7.26")
+
+	// http2
+	implementation("org.eclipse.jetty.http2:http2-server:$jettyVersion")
+	implementation("org.eclipse.jetty:jetty-alpn-conscrypt-server:$jettyVersion")
+	implementation("org.eclipse.jetty.alpn:alpn-api:1.1.3.v20160715")
+//	implementation("org.mortbay.jetty.alpn:alpn-boot:8.1.13.v20181017")
 
 	implementation("com.google.guava:guava:28.1-jre")
 
@@ -99,39 +102,5 @@ tasks {
 	}
 	withType<Test> {
 		useJUnitPlatform()
-	}
-	withType<JacocoReport> {
-		reports {
-			xml.isEnabled = true
-		}
-	}
-	withType<SonarQubeTask> { dependsOn("test", "jacocoTestReport") }
-}
-jacoco {
-	toolVersion = "0.8.4"
-}
-val codeCoverageReport by tasks.creating(JacocoReport::class) {
-	dependsOn("test")
-}
-
-sonarqube {
-	val git = runCatching { Grgit.open(project.rootDir) }.getOrNull()
-	// Don't run an analysis if we can't get git context
-	val name = (if(git == null) null else runCatching { git.branch.current.name }.getOrNull())
-	val target = when(name) {
-		null -> null
-		"develop" -> "master"
-		else -> "develop"
-	}
-	val branch = if(name != null && target != null) Pair(name, target) else null
-	this.isSkipProject = branch == null
-	properties{
-		property("sonar.projectKey", "djcass44:fav2")
-		property("sonar.projectName", "djcass44/fav2")
-//		if(branch != null) {
-//			property("sonar.branch.name", branch.first)
-//			property("sonar.branch.target", branch.second)
-//		}
-		property("sonar.jacoco.xmlReportPaths", "$projectDir/build/test-results/test")
 	}
 }

@@ -1,5 +1,5 @@
 # STAGE 1 - BUILD
-FROM gradle:5.5.1-jdk12 as GRADLE_CACHE
+FROM gradle:jdk12 as GRADLE_CACHE
 LABEL maintainer="Django Cass <dj.cass44@gmail.com>"
 
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 # Dry run for caching
 COPY . .
 
-RUN gradle jlink
+RUN gradle jlink -x test
 
 # STAGE 2 - RUN
 FROM ubuntu:bionic
@@ -27,15 +27,7 @@ COPY --from=GRADLE_CACHE /app/build/image .
 
 EXPOSE $FAV_HTTP_PORT
 
-# Add Tini
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-
-RUN mkdir -p $FAV_DATA && \
-    chown -R ${USER}:${USER} $FAV_DATA /tini /app && \
-    chmod -R 755 $FAV_DATA
+RUN chown -R ${USER}:${USER} /app
 USER ${USER}
 
-ENTRYPOINT ["/tini", "--"]
-CMD ["bash", "/app/bin/fav2"]
+ENTRYPOINT ["bash", "/app/bin/fav2"]

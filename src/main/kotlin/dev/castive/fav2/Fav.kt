@@ -21,10 +21,7 @@ import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.fav2.util.safe
-import dev.castive.log2.Log
-import dev.castive.log2.loge
-import dev.castive.log2.logi
-import dev.castive.log2.logok
+import dev.castive.log2.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -83,6 +80,7 @@ class Fav(
 			Log.w(javaClass, "Got no image for target: $path")
 			return@withContext
 		}
+		"Loading item $path into cache".logv(javaClass)
 		cache[dest(path)] = data
 	}
 
