@@ -15,14 +15,16 @@
  *
  */
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	kotlin("jvm") version "1.3.50"
 	java
 	application
-	id("org.beryx.jlink") version "2.16.0"
-	id("com.github.ben-manes.versions") version "0.26.0"
+	id("com.github.johnrengelman.shadow") version "5.1.0"
+	id("org.beryx.jlink") version "2.16.2"
+	id("com.github.ben-manes.versions") version "0.27.0"
 }
 group = "dev.castive"
 version = "0.3"
@@ -59,15 +61,13 @@ dependencies {
 
 	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.2")
 
-	implementation("io.javalin:javalin:3.5.0")
+	implementation("io.javalin:javalin:3.6.0")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
 	implementation("org.slf4j:slf4j-simple:1.7.26")
 
 	// http2
 	implementation("org.eclipse.jetty.http2:http2-server:$jettyVersion")
 	implementation("org.eclipse.jetty:jetty-alpn-conscrypt-server:$jettyVersion")
-	implementation("org.eclipse.jetty.alpn:alpn-api:1.1.3.v20160715")
-//	implementation("org.mortbay.jetty.alpn:alpn-boot:8.1.13.v20181017")
 
 	implementation("com.google.guava:guava:28.1-jre")
 
@@ -89,6 +89,12 @@ configure<JavaPluginConvention> {
 tasks {
 	withType<KotlinCompile>().all {
 		kotlinOptions.jvmTarget = "12"
+	}
+	withType<ShadowJar> {
+		baseName = "fav"
+		classifier = null
+		version = null
+		mergeServiceFiles()
 	}
 	withType<JavaCompile>().all {
 		inputs.property("moduleName", moduleName)

@@ -7,10 +7,10 @@ WORKDIR /app
 # Dry run for caching
 COPY . .
 
-RUN gradle jlink -x test
+RUN gradle shadowJar -x test
 
 # STAGE 2 - RUN
-FROM ubuntu:bionic
+FROM adoptopenjdk/openjdk12:alpine-jre
 LABEL maintainer="Django Cass <dj.cass44@gmail.com>"
 
 ENV FAV_ALLOW_CORS=false \
@@ -20,14 +20,14 @@ ENV FAV_ALLOW_CORS=false \
     FAV_DATA="/data" \
     USER=fav
 
-RUN useradd --system -u 1001 -U ${USER}
+RUN addgroup -S ${USER} && adduser -S ${USER} -G ${USER}
 
 WORKDIR /app
-COPY --from=GRADLE_CACHE /app/build/image .
+COPY --from=GRADLE_CACHE /app/build/libs/fav.jar .
 
 EXPOSE $FAV_HTTP_PORT
 
 RUN chown -R ${USER}:${USER} /app
 USER ${USER}
 
-ENTRYPOINT ["bash", "/app/bin/fav2"]
+ENTRYPOINT ["java", "-jar", "fav.jar"]

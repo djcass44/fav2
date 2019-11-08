@@ -17,6 +17,7 @@ module dev.castive.fav2 {
 	requires com.google.common;
 	requires io.swagger.v3.oas.models;
 	requires java.xml.bind;
+	requires java.activation;
 
 	// jetty
 	requires org.eclipse.jetty.server;
