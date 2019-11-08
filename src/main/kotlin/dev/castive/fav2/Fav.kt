@@ -21,29 +21,48 @@ import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.fav2.util.safe
-import dev.castive.log2.Log
+import dev.castive.log2.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 
 class Fav(
-	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean()
+	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean(),
+	private val cache: TimedCache<String, BufferedImage>
 ) {
-	private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
 	private val baseUrl = EnvUtil.getEnv(EnvUtil.FAV_BASE_URL, "http://localhost:8080")
 
-	/**
-	 * Get the destination filename
-	 */
-	private fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
+	companion object {
+		private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
+
+		/**
+		 * Get the destination filename
+		 */
+		fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
+
+		val cacheListener = object : TimedCache.TimedCacheListener<String, BufferedImage> {
+			override suspend fun onAgeLimitReached(key: String, value: BufferedImage) = withContext(Dispatchers.IO) {
+				"Writing stale image to disk: $key".logi(javaClass)
+				try {
+					// Write the BufferedImage to disk as a png
+					val file = File("$dataPath${File.separator}${key}")
+					ImageIO.write(value, "png", file)
+					"Wrote data to path: ${file.absolutePath}".logok(javaClass)
+				}
+				catch (e: IOException) {
+					"Failed to write data: $e".loge(javaClass)
+				}
+			}
+
+		}
+	}
 
 	/**
 	 * Concurrently get and download a favicon
@@ -61,15 +80,8 @@ class Fav(
 			Log.w(javaClass, "Got no image for target: $path")
 			return@withContext
 		}
-		try {
-			// Write the BufferedImage to disk as a png
-			val file = File("$dataPath${File.separator}${dest(path)}")
-			ImageIO.write(data, "png", file)
-			Log.i(javaClass, "Wrote data to path: ${file.absolutePath}")
-		}
-		catch (e: IOException) {
-			Log.e(javaClass, "Failed to write data: $e")
-		}
+		"Loading item $path into cache".logv(javaClass)
+		cache[dest(path)] = data
 	}
 
 	fun loadDomain(domain: String, future: CompletableFuture<String?>) {
