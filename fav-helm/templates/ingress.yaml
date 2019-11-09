@@ -4,7 +4,16 @@ kind: Ingress
 metadata:
   name: {{ .Values.name }}
   annotations:
-   ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    {{ if .Values.ingress.hsts }}
+    ingress.kubernetes.io/frame-deny: "true"
+    ingress.kubernetes.io/hsts-max-age: "31536000"
+    ingress.kubernetes.io/hsts-include-subdomains: "true"
+    ingress.kubernetes.io/hsts-preload: "true"
+    ingress.kubernetes.io/referrer-policy: "no-referrer"
+    ingress.kubernetes.io/browser-xss-filter: "true"
+    ingress.kubernetes.io/content-type-nosniff: "true"
+    {{ end }}
 spec:
   rules:
   - host: {{ .Values.ingress.host }}

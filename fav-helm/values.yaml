@@ -30,6 +30,8 @@ images:
 ingress:
   enabled: true
   host: icon.jmp.castive.dev
+  # enforce HTTPS using HSTS (recommended)
+  hsts: false
 
 
 # network policy
@@ -38,3 +40,5 @@ netsec:
   # label to allow traffic from
   source:
     app: traefik
+  namespace:
+    dev.dcas.netsec/name: kube-system

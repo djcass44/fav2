@@ -9,6 +9,11 @@ spec:
       app: {{ .Values.name }}
   ingress:
   - from:
+      - namespaceSelector:
+          matchLabels:
+            {{- range $key, $val := .Values.netsec.namespace }}
+            {{ $key }}: {{ $val }}
+            {{- end}}
       - podSelector:
           matchLabels:
             {{- range $key, $val := .Values.netsec.source }}
