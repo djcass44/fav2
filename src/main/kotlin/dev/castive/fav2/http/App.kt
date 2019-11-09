@@ -24,6 +24,7 @@ import dev.castive.fav2.http.config.ServerConfig
 import dev.castive.fav2.util.EnvUtil
 import dev.castive.fav2.util.env
 import dev.castive.log2.Log
+import dev.castive.log2.logw
 import io.javalin.Javalin
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.OpenApiOptions
@@ -54,7 +55,10 @@ class App {
 	            }
                 showJavalinBanner = false
 	            // allow cors requests ONLY when explicitly enabled
-                if(EnvUtil.getEnv(EnvUtil.FAV_ALLOW_CORS, "false").toBoolean()) enableCorsForAllOrigins()
+                if(EnvUtil.getEnv(EnvUtil.FAV_ALLOW_CORS, "false").toBoolean()) {
+	                "CORS is allowed for all origins - only allow this if you know what you're doing".logw(javaClass)
+	                enableCorsForAllOrigins()
+                }
 	            requestLogger { ctx, timeMs ->
 		            // log requests to the console
 		            Log.i(javaClass, "${System.currentTimeMillis()} - ${ctx.method()} ${ctx.path()} took $timeMs ms")
