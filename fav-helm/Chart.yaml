@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: "0.3"
 description: FAV2 Chart for Kubernetes
 name: fav-helm
-version: 0.1.2
+version: 0.1.3

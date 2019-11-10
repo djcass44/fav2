@@ -56,12 +56,7 @@ spec:
           name: data
         {{ end }}
         resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
-          limits:
-            cpu: 200m
-            memory: 250Mi
+{{ toYaml .Values.resources | indent 10 }}
         readinessProbe:
           httpGet:
             path: /healthz

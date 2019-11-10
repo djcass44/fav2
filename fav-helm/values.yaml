@@ -20,6 +20,14 @@ env:
   FAV_DATA: "/data"
   FAV_BASE_URL: "https://icon.jmp.castive.dev"
 
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 200m
+    memory: 250Mi
+
 
 images:
   api:
