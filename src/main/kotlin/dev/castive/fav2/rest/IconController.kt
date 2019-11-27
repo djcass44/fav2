@@ -18,6 +18,9 @@ package dev.castive.fav2.rest
 
 import dev.castive.fav2.error.BadRequestResponse
 import dev.castive.fav2.service.IconLoader
+import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiResponse
+import io.swagger.annotations.ApiResponses
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
@@ -31,6 +34,11 @@ import org.springframework.web.bind.annotation.*
 class IconController @Autowired constructor(
 	private val loader: IconLoader
 ) {
+	@ApiOperation(value = "Get the favicon for a website", response = InputStreamResource::class)
+	@ApiResponses(value = [
+		ApiResponse(code = 200, message = "Icon loaded successfully", response = InputStreamResource::class),
+		ApiResponse(code = 400, message = "Failed to load favicon")
+	])
 	@GetMapping
 	fun getImage(@RequestParam site: String): ResponseEntity<*> {
 		if(site.isBlank())
@@ -43,13 +51,19 @@ class IconController @Autowired constructor(
 		return ResponseEntity(InputStreamResource(stream), headers, HttpStatus.OK)
 	}
 
-	@DeleteMapping("/cache")
+	@ApiOperation(value = "Delete an item from the cache", response = Boolean::class)
+	@ApiResponses(value = [
+		ApiResponse(code = 200, message = "true"),
+		ApiResponse(code = 200, message = "false")
+	])
+	@DeleteMapping("/cache", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun deleteFromCache(@RequestParam site: String): Boolean {
 		if(site.isBlank())
 			throw BadRequestResponse("'site' parameter must not be blank")
 		return loader.deleteFromCache(site)
 	}
 
-	@GetMapping("/cache")
+	@ApiOperation(value = "View the contents of the cache")
+	@GetMapping("/cache", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun getCache(): List<Pair<String, Int>> = loader.peekCache()
 }

@@ -55,7 +55,7 @@ spec:
 {{ toYaml .Values.resources | indent 10 }}
         readinessProbe:
           httpGet:
-            path: /healthz
+            path: /actuator/health
             port: {{ .Values.env.SERVER_PORT }}
           initialDelaySeconds: 5
           periodSeconds: 5
