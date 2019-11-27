@@ -4,6 +4,6 @@ services:
     image: djcass44/fav2:latest
     restart: always
     ports:
-      - 8081:8080
+      - 8080:8080
     environment:
-      - FAV_BASE_URL=http://localhost:8081
+      - FAV_URL=http://localhost:8080

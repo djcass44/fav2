@@ -6,16 +6,6 @@ Fav2 is a simple application used to scrape the url of [favicons](https://en.wik
 
 ### Setup
 
-The recommended method of running fav2 is via docker.
-The application has full JPMS support and can therefore run standalone *without a JDK or JRE*
-
-Standalone (with or without JRE)
-
-```shell script
-./gradlew jlink # build
-./build/image/bin/fav2 # run
-```
-
 Docker
 ```shell script
 docker run -p 8080:8080 djcass44/fav2
@@ -26,34 +16,29 @@ version: '3'
 services:
   fav:
     image: djcass44/fav
+    restart: always
     ports:
       - 8080:8080
     environment:
-      - FAV_BASE_URL=https://icon.mydomain.org
-      - FAV_DATA=/mnt/myvolume
+      - FAV_URL=https://icon.mydomain.org
+      - FAV_PATH=/mnt/myvolume
 ```
 
 **Configuration**
 
-`FAV_ALLOW_CORS`: Allow CORS requests (default `false`)
-
-`FAV_DEBUG`: Show additional debug information (default `false`)
-
-`FAV_HTTP_PORT`: The port for the HTTP server to listen on (default `8080`)
-
-`FAV_DATA`: The directory to use for storage of images (default `/data`)
-
-`FAV_BASE_URL`: The url that the application is reachable on (default `http://localhost:8080`). This is required if you're running it behind a reverse-proxy
+See [application.yaml](src/main/resources/application.yaml) for configuration details
 
 #### Usage
 
-* POST: `/icon?site=https://example.org`
-    * This will tell the application to download the favicon at `https://example.org`
 * GET: `/icon?site=https://example.org`
     * Try to load the favicon for this url
     * If the favicon hasn't been downloaded yet, the application will internally make the above POST request
-* GET: `/healthz`
-    * Returns "200 OK" to signify that the HTTP is up and capable of responding to requests
+* GET: `/icon/cache`
+    * Shows the current contents of the cache
+    * **Note**: will not return actual image data, just site names and cache age
+* DELETE `/icon/cache?site=https://example.org`
+    * Will remove the favicon for this site from the cache
+    * **Note**: this will not remove the favicon if it's been saved to permanent storage
 
 ### License
 
