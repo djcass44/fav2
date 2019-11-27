@@ -29,7 +29,7 @@ class NetworkLoaderTest {
 		"https://github.com"
 	])
 	fun getKnownDocument(value: String) {
-		val loader = JsoupNetworkLoader(true)
+		val loader = JsoupNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNotNull(icon)
@@ -41,7 +41,7 @@ class NetworkLoaderTest {
 		"https://apple.com"
 	])
 	fun getFailDocument(value: String) {
-		val loader = JsoupNetworkLoader(true)
+		val loader = JsoupNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNull(icon)
