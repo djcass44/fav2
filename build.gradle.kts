@@ -64,6 +64,7 @@ dependencies {
 	}
 	implementation("org.jsoup:jsoup:1.12.1")
 	implementation("com.squareup.okhttp3:okhttp:4.2.2")
+	implementation("com.google.guava:guava:28.1-jre")
 
 	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.2")
 

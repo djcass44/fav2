@@ -16,11 +16,13 @@
 
 package dev.castive.fav2.service
 
+import com.google.common.util.concurrent.RateLimiter
 import dev.castive.fav2.Fav
 import dev.castive.fav2.TimedCache
 import dev.castive.fav2.config.AppConfig
 import dev.castive.fav2.config.CacheConfig
 import dev.castive.fav2.error.BadRequestResponse
+import dev.castive.fav2.error.RateLimitResponse
 import dev.castive.log2.loge
 import dev.castive.log2.logi
 import dev.castive.log2.logv
@@ -48,6 +50,8 @@ class IconLoader @Autowired constructor(
 	private val prefixInsecure = "http://"
 	private val prefixSecure = "https://"
 
+	private val limit = RateLimiter.create(config.rate)
+
 	fun deleteFromCache(url: String): Boolean {
 		val domain = getBestUrl(url)
 		val name = Fav.dest(domain)
@@ -58,6 +62,12 @@ class IconLoader @Autowired constructor(
 
 
 	fun loadStream(url: String): InputStream? {
+		// check if we are being throttled
+		val permit = limit.tryAcquire()
+		if(!permit) {
+			"Rate limiting request for $url".logv(javaClass)
+			throw RateLimitResponse()
+		}
 		val domain = getBestUrl(url)
 		val name = Fav.dest(domain)
 		val targetFile = try {

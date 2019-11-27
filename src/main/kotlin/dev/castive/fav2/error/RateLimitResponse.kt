@@ -14,22 +14,9 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.config
+package dev.castive.fav2.error
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 
-@Component
-class AppConfig {
-	@Value("\${fav.path}")
-	val path: String = "/data"
-
-	@Value("\${fav.insecure}")
-	val insecure: Boolean = false
-
-	@Value("\${fav.url}")
-	val url: String = "http://localhost:8080"
-
-	@Value("\${fav.rate}")
-	val rate: Double = 10.0
-}
+class RateLimitResponse(message: String = "Too Many Requests"): ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, message)
