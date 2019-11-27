@@ -48,6 +48,14 @@ class IconLoader @Autowired constructor(
 	private val prefixInsecure = "http://"
 	private val prefixSecure = "https://"
 
+	fun deleteFromCache(url: String): Boolean {
+		val domain = getBestUrl(url)
+		val name = Fav.dest(domain)
+		return cache.remove(name)
+	}
+
+	fun peekCache(): List<Pair<String, Int>> = cache.peek()
+
 
 	fun loadStream(url: String): InputStream? {
 		val domain = getBestUrl(url)

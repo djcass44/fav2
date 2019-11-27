@@ -4,6 +4,7 @@ spring:
 fav:
   path: "./data"
   insecure: false
+  url: http://localhost:8080
 cache:
   limit: 60
   delay: 10000

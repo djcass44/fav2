@@ -24,10 +24,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/icon")
 @RestController
@@ -45,4 +42,14 @@ class IconController @Autowired constructor(
 		}
 		return ResponseEntity(InputStreamResource(stream), headers, HttpStatus.OK)
 	}
+
+	@DeleteMapping("/cache")
+	fun deleteFromCache(@RequestParam site: String): Boolean {
+		if(site.isBlank())
+			throw BadRequestResponse("'site' parameter must not be blank")
+		return loader.deleteFromCache(site)
+	}
+
+	@GetMapping("/cache")
+	fun getCache(): List<Pair<String, Int>> = loader.peekCache()
 }
