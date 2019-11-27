@@ -14,14 +14,16 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.http
+package dev.castive.fav2.config
 
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
-fun main() = runBlocking {
-    // Start the HTTP server
-    launch {
-        App().start()
-    }.join()
+@Component
+class CacheConfig {
+	@Value("\${cache.limit}")
+	val limit: Int = 60
+
+	@Value("\${cache.delay}")
+	val delay: Long = 10_000L
 }

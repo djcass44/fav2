@@ -22,5 +22,5 @@ spec:
         - path: /
           backend:
             serviceName: {{ .Values.name }}
-            servicePort: {{ .Values.env.FAV_HTTP_PORT }}
+            servicePort: {{ .Values.env.SERVER_PORT }}
 {{- end }}

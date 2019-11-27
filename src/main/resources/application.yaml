@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: fav2
+fav:
+  path: "./data"
+  insecure: false
+cache:
+  limit: 60
+  delay: 10000
+logging:
+  level:
+    dev.castive: trace

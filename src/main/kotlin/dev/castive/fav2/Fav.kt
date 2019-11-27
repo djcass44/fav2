@@ -30,14 +30,12 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 
 class Fav(
-	private val debug: Boolean = EnvUtil.getEnv(EnvUtil.FAV_DEBUG, "false").toBoolean(),
-	private val cache: TimedCache<String, BufferedImage>
+	private val cache: TimedCache<String, BufferedImage>,
+	private val baseUrl: String
 ) {
-	private val baseUrl = EnvUtil.getEnv(EnvUtil.FAV_BASE_URL, "http://localhost:8080")
 
 	companion object {
 		private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
@@ -84,9 +82,6 @@ class Fav(
 		cache[dest(path)] = data
 	}
 
-	fun loadDomain(domain: String, future: CompletableFuture<String?>) {
-		future.complete(loadDomain(domain))
-	}
 	fun loadDomain(domain: String, skipDownload: Boolean = false): String? {
 		if(!checkDomain(domain)) return null
 		var icon: String? = DirectNetworkLoader().getIconPath(domain)
@@ -96,7 +91,7 @@ class Fav(
 			return "$baseUrl/icon?site=${domain.safe()}"
 		}
 		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
-		icon = JsoupNetworkLoader(debug).getIconPath(domain)
+		icon = JsoupNetworkLoader().getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
 			if(!skipDownload) GlobalScope.launch { downloadDomain(icon) }
 			return "$baseUrl/icon?site=${domain.safe()}"
@@ -104,33 +99,9 @@ class Fav(
 
 		return null
 	}
-	fun loadDomain(domain: String, callback: OnLoadedCallback) {
-		if(!checkDomain(domain)) {
-			callback.onLoad(null)
-			return
-		}
-		GlobalScope.launch {
-			var icon: String? = DirectNetworkLoader().getIconPath(domain)
-			if(icon != null && icon.isNotBlank()) {
-				callback.onLoad(icon)
-				return@launch
-			}
-			// if we found nothing, fallback to the slower DOM analysis
-			icon = JsoupNetworkLoader(debug).getIconPath(domain)
-			if(icon != null && icon.isNotBlank()) {
-				callback.onLoad(icon)
-				return@launch
-			}
-			callback.onLoad(null)
-		}
-	}
 
 	internal fun checkDomain(domain: String): Boolean {
-		if(domain.startsWith("http://") && debug) Log.w(javaClass, "Loading of insecure origins is not recommended.")
+		if(domain.startsWith("http://")) Log.w(javaClass, "Loading of insecure origins is not recommended.")
 		return !domain.startsWith("http://")
-	}
-
-	interface OnLoadedCallback {
-		fun onLoad(favicon: String?)
 	}
 }

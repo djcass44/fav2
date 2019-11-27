@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019 Django Cass
+ *  Copyright 2019 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -12,18 +12,21 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
- *
  */
 
-package dev.castive.fav2
+package dev.castive.fav2.config
 
-object Definitions {
-	private val possibleNames = arrayOf(
-		"favicon",
-		"shortcut icon",
-		"apple-touch-icon"
-	)
-	fun contains(str: String): Boolean {
-		return possibleNames.any { it.contains(str) }
-	}
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
+
+@Component
+class AppConfig {
+	@Value("\${fav.path}")
+	val path: String = "/data"
+
+	@Value("\${fav.insecure}")
+	val insecure: Boolean = false
+
+	@Value("\${fav.url}")
+	val url: String = "http://localhost:8080"
 }

@@ -36,7 +36,7 @@ class FavTest {
 		"https://apple.com"
 	])
 	fun getKnown(value: String) {
-		val icon = Fav(cache = cache).loadDomain(value, skipDownload = true)
+		val icon = Fav(cache = cache, baseUrl = "http://localhost:8080").loadDomain(value, skipDownload = true)
 		Log.i(javaClass, "Icon: $icon")
 		assertNotNull(icon)
 		assertTrue(icon!!.endsWith(URLEncoder.encode(value, StandardCharsets.UTF_8)))
@@ -44,13 +44,13 @@ class FavTest {
 
 	@Test
 	fun checkSecure() {
-		val fav = Fav(debug = false, cache = cache)
+		val fav = Fav(cache = cache, baseUrl = "http://localhost:8080")
 		val allowed = fav.checkDomain("https://google.com")
 		assertTrue(allowed)
 	}
 	@Test
 	fun checkInsecure() {
-		val fav = Fav(debug = false, cache =  cache)
+		val fav = Fav(cache =  cache, baseUrl = "http://localhost:8080")
 		val allowed = fav.checkDomain("http://google.com")
 		assertFalse(allowed)
 	}

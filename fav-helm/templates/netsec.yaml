@@ -21,7 +21,7 @@ spec:
             {{- end}}
     ports:
     - protocol: TCP
-      port: {{ .Values.env.FAV_HTTP_PORT }}
+      port: {{ .Values.env.SERVER_PORT }}
   egress:
   - {}
   policyTypes:

@@ -5,20 +5,15 @@ replicas: 1
 # PVC to use
 claimName: fav
 
-# ssl configuration
-ssl:
-  FAV_SSL_ENABLED: false
-  FAV_SSL_KEYSTORE: "/data/keystore.jks"
-  FAV_SSL_PASSWORD: password
-  FAV_HTTP2: true
 # arbitrary environment variables to inject to the API pod
 # this can be extended
 env:
-  FAV_ALLOW_CORS: false
-  FAV_DEBUG: false
-  FAV_HTTP_PORT: 8080
-  FAV_DATA: "/data"
-  FAV_BASE_URL: "https://icon.jmp.castive.dev"
+  FAV_PATH: "/data"
+  FAV_INSECURE: false
+  FAV_URL: "https://icon.jmp.castive.dev"
+  CACHE_LIMIT: 60
+  CACHE_DELAY: 10000
+  SERVER_PORT: 8080
 
 resources:
   requests:
