@@ -17,69 +17,53 @@
 
 package dev.castive.fav2
 
+import dev.castive.fav2.config.AppConfig
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
-import dev.castive.fav2.util.EnvUtil
 import dev.castive.fav2.util.safe
-import dev.castive.log2.*
+import dev.castive.log2.Log
+import dev.castive.log2.loge
+import dev.castive.log2.logok
+import dev.castive.log2.logv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.image.BufferedImage
-import java.io.File
-import java.io.IOException
 import java.net.URI
 import javax.imageio.ImageIO
 
 class Fav(
 	private val cache: TimedCache<String, BufferedImage>,
-	private val baseUrl: String
+	private val appConfig: AppConfig
 ) {
 
 	companion object {
-		private val dataPath = EnvUtil.getEnv(EnvUtil.FAV_DATA, "/data")
-
 		/**
 		 * Get the destination filename
 		 */
 		fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
-
-		val cacheListener = object : TimedCache.TimedCacheListener<String, BufferedImage> {
-			override suspend fun onAgeLimitReached(key: String, value: BufferedImage) = withContext(Dispatchers.IO) {
-				"Writing stale image to disk: $key".logi(javaClass)
-				try {
-					// Write the BufferedImage to disk as a png
-					val file = File("$dataPath${File.separator}${key}")
-					ImageIO.write(value, "png", file)
-					"Wrote data to path: ${file.absolutePath}".logok(javaClass)
-				}
-				catch (e: IOException) {
-					"Failed to write data: $e".loge(javaClass)
-				}
-			}
-
-		}
 	}
 
 	/**
 	 * Concurrently get and download a favicon
 	 * The favicon is saved to disk for later use
 	 */
-	private suspend fun downloadDomain(path: String) = withContext(Dispatchers.IO) {
+	private suspend fun downloadDomain(domain: String, path: String) = withContext(Dispatchers.IO) {
 		val uri = URI(path)
-		Log.i(javaClass, "Starting to download image at path: ${uri.toURL()}")
+		Log.i(Fav::class.java, "Starting to download image at path: ${uri.toURL()}")
 		// Use ImageIO to load the image into a BufferedImage
-		val image = runCatching { ImageIO.read(uri.toURL()) }
-		val err = image.exceptionOrNull()
-		// Handle if the returned image is null
-		if (err != null) Log.e(javaClass, "Failed to load favicon data: $err")
+		val image = runCatching { ImageIO.read(uri.toURL()) }.onFailure {
+			"Failed to load favicon data: $it".loge(Fav::class.java)
+		}.onSuccess {
+			"Successfully downloaded image: $path".logok(Fav::class.java)
+		}
 		val data = image.getOrNull() ?: run {
-			Log.w(javaClass, "Got no image for target: $path")
+			Log.w(Fav::class.java, "Got no image for target: $path")
 			return@withContext
 		}
-		"Loading item $path into cache".logv(javaClass)
-		cache[dest(path)] = data
+		"Loading item $path into cache with key: '${dest(domain)}'".logv(Fav::class.java)
+		cache[dest(domain)] = data
 	}
 
 	fun loadDomain(domain: String, skipDownload: Boolean = false): String? {
@@ -87,14 +71,14 @@ class Fav(
 		var icon: String? = DirectNetworkLoader().getIconPath(domain)
 		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
-			if(!skipDownload) GlobalScope.launch { downloadDomain(icon!!) }
-			return "$baseUrl/icon?site=${domain.safe()}"
+			if(!skipDownload) GlobalScope.launch { downloadDomain(domain, icon!!) }
+			return "${appConfig.url}/icon?site=${domain.safe()}"
 		}
 		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
 		icon = JsoupNetworkLoader().getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
-			if(!skipDownload) GlobalScope.launch { downloadDomain(icon) }
-			return "$baseUrl/icon?site=${domain.safe()}"
+			if(!skipDownload) GlobalScope.launch { downloadDomain(domain, icon) }
+			return "${appConfig.url}/icon?site=${domain.safe()}"
 		}
 
 		return null

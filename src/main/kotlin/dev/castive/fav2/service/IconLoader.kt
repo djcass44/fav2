@@ -25,6 +25,7 @@ import dev.castive.fav2.error.BadRequestResponse
 import dev.castive.fav2.error.RateLimitResponse
 import dev.castive.log2.loge
 import dev.castive.log2.logi
+import dev.castive.log2.logok
 import dev.castive.log2.logv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.awt.image.BufferedImage
 import java.io.*
 import javax.imageio.ImageIO
 
@@ -40,12 +42,30 @@ class IconLoader @Autowired constructor(
 	private val config: AppConfig,
 	cacheConfig: CacheConfig
 ) {
+	private final val cacheListener = object : TimedCache.TimedCacheListener<String, BufferedImage> {
+		override suspend fun onAgeLimitReached(key: String, value: BufferedImage) = withContext(Dispatchers.IO) {
+			"Writing stale image to disk: $key".logi(Fav::class.java)
+			try {
+				// Write the BufferedImage to disk as a png
+				val file = File("${config.path}${File.separator}${key}")
+				"Attempting to save file: ${file.absolutePath}".logv(Fav::class.java)
+				ImageIO.write(value, "png", file)
+				"Wrote data to path: ${file.absolutePath}".logok(Fav::class.java)
+			}
+			catch (e: IOException) {
+				"Failed to write data: $e".loge(Fav::class.java)
+			}
+		}
+
+	}
+
+
 	private val cache = TimedCache(
 		cacheConfig.limit,
 		cacheConfig.delay,
-		Fav.cacheListener
+		cacheListener
 	)
-	private val fav = Fav(cache = cache, baseUrl = config.url)
+	private val fav = Fav(cache = cache, appConfig = config)
 
 	private val prefixInsecure = "http://"
 	private val prefixSecure = "https://"
