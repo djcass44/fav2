@@ -17,17 +17,27 @@
 
 package dev.castive.fav2
 
+import dev.castive.fav2.config.AppConfig
 import dev.castive.log2.Log
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class FavTest {
 	private val cache = TimedCache<String, BufferedImage>()
+
+	private val appConfig: AppConfig = Mockito.mock(AppConfig::class.java)
+
+	@BeforeEach
+	internal fun setUp() {
+		Mockito.`when`(appConfig.url).thenReturn("http://localhost:8080")
+	}
 
 	@ParameterizedTest
 	@ValueSource(strings = [
@@ -36,7 +46,7 @@ class FavTest {
 		"https://apple.com"
 	])
 	fun getKnown(value: String) {
-		val icon = Fav(cache = cache, baseUrl = "http://localhost:8080").loadDomain(value, skipDownload = true)
+		val icon = Fav(cache = cache, appConfig = appConfig).loadDomain(value, skipDownload = true)
 		Log.i(javaClass, "Icon: $icon")
 		assertNotNull(icon)
 		assertTrue(icon!!.endsWith(URLEncoder.encode(value, StandardCharsets.UTF_8)))
@@ -44,13 +54,13 @@ class FavTest {
 
 	@Test
 	fun checkSecure() {
-		val fav = Fav(cache = cache, baseUrl = "http://localhost:8080")
+		val fav = Fav(cache = cache, appConfig = appConfig)
 		val allowed = fav.checkDomain("https://google.com")
 		assertTrue(allowed)
 	}
 	@Test
 	fun checkInsecure() {
-		val fav = Fav(cache =  cache, baseUrl = "http://localhost:8080")
+		val fav = Fav(cache =  cache, appConfig = appConfig)
 		val allowed = fav.checkDomain("http://google.com")
 		assertFalse(allowed)
 	}

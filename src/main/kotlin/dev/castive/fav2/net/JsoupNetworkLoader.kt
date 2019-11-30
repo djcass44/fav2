@@ -54,7 +54,7 @@ class JsoupNetworkLoader: NetworkLoader {
 	 * Make sure that the image url is absolute
 	 * E.g. /img/favicon.png -> example.com/img/favicon.png
 	 */
-	private fun getAbsoluteUrl(domain: String, imageUrl: String): String {
+	internal fun getAbsoluteUrl(domain: String, imageUrl: String): String {
 		val safeDomain = domain.removeSuffix("/")
 		return when {
 			imageUrl.startsWith("//") -> "https:${imageUrl}"
