@@ -51,7 +51,7 @@ class Fav(
 	 */
 	private suspend fun downloadDomain(domain: String, path: String) = withContext(Dispatchers.IO) {
 		val uri = URI(path)
-		Log.i(Fav::class.java, "Starting to download image at path: ${uri.toURL()}")
+		Log.i(Fav::class.java, "Starting to download image at path: $path")
 		// Use ImageIO to load the image into a BufferedImage
 		val image = runCatching { ImageIO.read(uri.toURL()) }.onFailure {
 			"Failed to load favicon data: $it".loge(Fav::class.java)

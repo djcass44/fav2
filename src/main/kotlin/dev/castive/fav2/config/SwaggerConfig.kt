@@ -44,6 +44,6 @@ class SwaggerConfig {
 		.version("0.4.0")
 		.license("Apache License Version 2.0")
 		.licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
-		.contact(Contact("Django Cass", "dcas.dev", "django@dcas.dev"))
+		.contact(Contact("Django Cass", "https://dcas.dev", "django@dcas.dev"))
 		.build()
 }

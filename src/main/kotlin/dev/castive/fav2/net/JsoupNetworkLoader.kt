@@ -56,8 +56,11 @@ class JsoupNetworkLoader: NetworkLoader {
 	 */
 	private fun getAbsoluteUrl(domain: String, imageUrl: String): String {
 		val safeDomain = domain.removeSuffix("/")
-		return if(imageUrl.startsWith("/"))
-			safeDomain + imageUrl
-		else imageUrl
+		return when {
+			imageUrl.startsWith("//") -> "https:${imageUrl}"
+			imageUrl.startsWith("/") -> safeDomain + imageUrl
+			!imageUrl.startsWith("http") -> "$safeDomain/$imageUrl"
+			else -> imageUrl
+		}
 	}
 }
