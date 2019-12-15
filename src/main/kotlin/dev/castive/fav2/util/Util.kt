@@ -23,10 +23,3 @@ import java.nio.charset.StandardCharsets
  * Convert a string to be URL safe
  */
 fun String.safe(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
-
-/**
- * Load the environment variable by this string
- */
-fun String.env(default: String = ""): String = EnvUtil.getEnv(this, default)
-
-fun String.asEnv(default: String = "") = EnvUtil.getEnv(this, default)

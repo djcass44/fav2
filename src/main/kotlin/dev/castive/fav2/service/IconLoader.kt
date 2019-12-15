@@ -94,7 +94,7 @@ class IconLoader @Autowired constructor(
 			File("${config.path}${File.separator}$name")
 		}
 		catch (e: Exception) {
-			"Unable to parse domain: $domain".loge(javaClass)
+			"Unable to parse domain: $domain".loge(javaClass, e)
 			return null
 		}
 		val existing = cache[name]

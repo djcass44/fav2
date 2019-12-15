@@ -51,12 +51,12 @@ class Fav(
 	 */
 	private suspend fun downloadDomain(domain: String, path: String) = withContext(Dispatchers.IO) {
 		val uri = kotlin.runCatching { URI(path) }.onFailure {
-			"Failed to parse url: $path".loge(Fav::class.java)
+			"Failed to parse url: $path".loge(Fav::class.java, it)
 		}.getOrNull() ?: return@withContext
 		Log.i(Fav::class.java, "Starting to download image at path: $path")
 		// Use ImageIO to load the image into a BufferedImage
 		val image = runCatching { ImageIO.read(uri.toURL()) }.onFailure {
-			"Failed to load favicon data: $it".loge(Fav::class.java)
+			"Failed to load favicon data: $domain".loge(Fav::class.java, it)
 		}.onSuccess {
 			"Successfully downloaded image: $path".logok(Fav::class.java)
 		}

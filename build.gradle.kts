@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	id("org.springframework.boot") version "2.2.1.RELEASE"
+	id("org.springframework.boot") version "2.2.2.RELEASE"
 	id("io.spring.dependency-management") version "1.0.8.RELEASE"
 	kotlin("jvm") version "1.3.61"
 	kotlin("plugin.spring") version "1.3.61"
@@ -44,11 +44,12 @@ repositories {
 }
 
 val junitVersion: String by project
+extra["springCloudVersion"] = "Hoxton.RELEASE"
 
 dependencies {
 	// standard library
 	implementation(kotlin("stdlib-jdk8"))
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
 	implementation("com.sun.activation:javax.activation:1.2.0")
@@ -58,10 +59,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
+	implementation("org.springframework.cloud:spring-cloud-starter-config")
 
-	implementation("com.github.djcass44:log2:4.0") {
-		exclude("org.slf4j")
-	}
+	implementation("com.github.djcass44:log2:4.1")
 	implementation("org.jsoup:jsoup:1.12.1")
 	implementation("com.squareup.okhttp3:okhttp:4.2.2")
 	implementation("com.google.guava:guava:28.1-jre")
@@ -82,11 +82,22 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+	}
+}
+
 configure<JavaPluginConvention> {
 	sourceCompatibility = JavaVersion.VERSION_11
 	targetCompatibility = JavaVersion.VERSION_11
 }
 tasks {
+	wrapper {
+		gradleVersion = "6.0.1"
+		distributionType = Wrapper.DistributionType.ALL
+	}
 	withType<KotlinCompile>().all {
 		kotlinOptions {
 			freeCompilerArgs = listOf("-Xjsr305=strict")

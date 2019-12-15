@@ -35,7 +35,7 @@ class DirectNetworkLoader : NetworkLoader {
 		}.firstOrNull() ?: ""
 	}
 	catch (e: Exception) {
-		"Failed to get icon path: $domain".loge(javaClass)
+		"Failed to get icon path: $domain".loge(javaClass, e)
 		""
 	}
 	private fun getIcon(target: String): String? {
@@ -55,7 +55,7 @@ class DirectNetworkLoader : NetworkLoader {
 			null
 		}
 		catch (e: Exception) {
-			Log.v(javaClass, "Failed to get direct favicon")
+			Log.v(javaClass, "Failed to get direct favicon at location: $target", e)
 			null
 		}
 	}

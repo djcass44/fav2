@@ -45,7 +45,7 @@ class JsoupNetworkLoader: NetworkLoader {
 			return if (validIcons.isEmpty()) null else getAbsoluteUrl(domain, validIcons[0])
 		}
 		catch (e: Exception) {
-			"Failed to get icon: $e".loge(javaClass)
+			"Failed to get icon for domain: $domain".loge(javaClass, e)
 			return null
 		}
 	}

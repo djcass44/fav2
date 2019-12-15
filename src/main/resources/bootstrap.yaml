@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: fav2
+  cloud:
+    config:
+      enabled: false
+      fail-fast: true

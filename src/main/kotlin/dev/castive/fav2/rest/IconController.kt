@@ -39,6 +39,7 @@ class IconController @Autowired constructor(
 		ApiResponse(code = 200, message = "Icon loaded successfully", response = InputStreamResource::class),
 		ApiResponse(code = 400, message = "Failed to load favicon")
 	])
+	@CrossOrigin("*")
 	@GetMapping
 	fun getImage(@RequestParam site: String): ResponseEntity<*> {
 		if(site.isBlank())

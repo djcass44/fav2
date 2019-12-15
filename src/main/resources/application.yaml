@@ -1,6 +1,8 @@
 spring:
   application:
     name: fav2
+  profiles:
+    active: dev
 fav:
   path: "./data"
   insecure: false

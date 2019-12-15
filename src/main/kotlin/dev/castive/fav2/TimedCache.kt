@@ -56,7 +56,7 @@ class TimedCache<K, V>(
 		true
 	}
 	catch (e: Exception) {
-		"Failed to remove item from cache: $e".loge(javaClass)
+		"Failed to remove item from cache with key: $key".loge(javaClass, e)
 		false
 	}
 
