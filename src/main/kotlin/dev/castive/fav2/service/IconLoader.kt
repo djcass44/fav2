@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 import java.io.*
+import javax.annotation.PostConstruct
 import javax.imageio.ImageIO
 
 @Service
@@ -71,6 +72,12 @@ class IconLoader @Autowired constructor(
 	private val prefixSecure = "https://"
 
 	private val limit = RateLimiter.create(config.rate)
+
+	@PostConstruct
+	fun init() {
+		"Using rate limit: ${config.rate}".logi(javaClass)
+	}
+
 
 	fun deleteFromCache(url: String): Boolean {
 		val domain = getBestUrl(url)

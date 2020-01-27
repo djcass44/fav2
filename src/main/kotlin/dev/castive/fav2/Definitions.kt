@@ -24,6 +24,6 @@ object Definitions {
 		"apple-touch-icon"
 	)
 	fun contains(str: String): Boolean {
-		return possibleNames.any { it.contains(str) }
+		return possibleNames.any { it.contains(str, ignoreCase = true) }
 	}
 }
