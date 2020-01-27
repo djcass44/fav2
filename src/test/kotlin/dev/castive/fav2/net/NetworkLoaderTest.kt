@@ -18,6 +18,9 @@
 package dev.castive.fav2.net
 
 import dev.castive.log2.Log
+import org.hamcrest.CoreMatchers.anyOf
+import org.hamcrest.CoreMatchers.endsWith
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -34,6 +37,7 @@ class NetworkLoaderTest {
 		Log.d(javaClass, icon.toString())
 		assertNotNull(icon)
 		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
+		assertThat(icon, anyOf(endsWith("png"), endsWith("ico")))
 	}
 	@ParameterizedTest
 	@ValueSource(strings = [
@@ -51,13 +55,13 @@ class NetworkLoaderTest {
 		"https://github.com",
 		"https://google.com",
 		"https://apple.com",
-		"https://jmp.castive.dev"
+		"https://hub.docker.com"
 	])
 	fun getKnownDirect(value: String) {
 		val loader = DirectNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon)
 		assertNotNull(icon)
-		assertTrue(icon.endsWith("png") || icon.endsWith("ico"))
+		assertThat(icon, anyOf(endsWith("png"), endsWith("ico")))
 	}
 }

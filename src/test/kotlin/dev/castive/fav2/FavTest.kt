@@ -19,15 +19,17 @@ package dev.castive.fav2
 
 import dev.castive.fav2.config.AppConfig
 import dev.castive.log2.Log
-import org.junit.jupiter.api.Assertions.*
+import dev.dcas.util.extend.safe
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.endsWith
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito
 import java.awt.image.BufferedImage
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 class FavTest {
 	private val cache = TimedCache<String, BufferedImage>()
@@ -49,19 +51,19 @@ class FavTest {
 		val icon = Fav(cache = cache, appConfig = appConfig).loadDomain(value, skipDownload = true)
 		Log.i(javaClass, "Icon: $icon")
 		assertNotNull(icon)
-		assertTrue(icon!!.endsWith(URLEncoder.encode(value, StandardCharsets.UTF_8)))
+		assertThat(icon, endsWith(value.safe()))
 	}
 
 	@Test
 	fun checkSecure() {
 		val fav = Fav(cache = cache, appConfig = appConfig)
 		val allowed = fav.checkDomain("https://google.com")
-		assertTrue(allowed)
+		assertThat(allowed, `is`(true))
 	}
 	@Test
 	fun checkInsecure() {
 		val fav = Fav(cache =  cache, appConfig = appConfig)
 		val allowed = fav.checkDomain("http://google.com")
-		assertFalse(allowed)
+		assertThat(allowed, `is`(false))
 	}
 }

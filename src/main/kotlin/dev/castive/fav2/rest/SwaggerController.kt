@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Django Cass
+ *  Copyright 2020 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,12 +14,25 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.util
+package dev.castive.fav2.rest
 
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
+import springfox.documentation.annotations.ApiIgnore
+import javax.servlet.http.HttpServletResponse
 
-/**
- * Convert a string to be URL safe
- */
-fun String.safe(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
+@ApiIgnore
+@RestController
+class SwaggerController {
+
+	@GetMapping
+	fun index(response: HttpServletResponse) {
+		response.sendRedirect("/swagger-ui.html")
+	}
+
+	@GetMapping("/csrf")
+	fun csrf() {
+		// noop to appease swagger
+	}
+
+}

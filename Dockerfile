@@ -1,6 +1,6 @@
 # STAGE 1 - BUILD
-FROM gradle:jdk12 as GRADLE_CACHE
-LABEL maintainer="Django Cass <dj.cass44@gmail.com>"
+FROM gradle:jdk13 as GRADLE_CACHE
+LABEL maintainer="Django Cass <django@dcas.dev>"
 
 WORKDIR /app
 
@@ -10,14 +10,12 @@ COPY . .
 RUN gradle build -x test
 
 # STAGE 2 - RUN
-FROM adoptopenjdk/openjdk12:alpine-jre
-LABEL maintainer="Django Cass <dj.cass44@gmail.com>"
+FROM djcass44/adoptopenjdk-spring-base:13-alpine-jre
+LABEL maintainer="Django Cass <django@dcas.dev>"
 
 # create the non-root user to run as
 ENV USER=fav
 RUN addgroup -S ${USER} && adduser -S ${USER} -G ${USER}
-# install latest packages
-RUN apk upgrade --no-cache -q
 
 WORKDIR /app
 COPY --from=GRADLE_CACHE /app/build/libs/fav2.jar .

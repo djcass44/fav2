@@ -24,9 +24,6 @@ class AppConfig {
 	@Value("\${fav.path}")
 	val path: String = "/data"
 
-	@Value("\${fav.insecure}")
-	val insecure: Boolean = false
-
 	@Value("\${fav.url}")
 	val url: String = "http://localhost:8080"
 

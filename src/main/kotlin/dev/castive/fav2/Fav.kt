@@ -20,11 +20,11 @@ package dev.castive.fav2
 import dev.castive.fav2.config.AppConfig
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
-import dev.castive.fav2.util.safe
 import dev.castive.log2.Log
 import dev.castive.log2.loge
 import dev.castive.log2.logok
 import dev.castive.log2.logv
+import dev.dcas.util.extend.safe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

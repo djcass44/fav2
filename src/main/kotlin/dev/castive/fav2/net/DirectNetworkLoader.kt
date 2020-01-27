@@ -18,13 +18,15 @@
 package dev.castive.fav2.net
 
 import dev.castive.log2.Log
+import dev.castive.log2.logd
 import dev.castive.log2.loge
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.springframework.http.MediaType
 import java.net.URI
 
 class DirectNetworkLoader : NetworkLoader {
-	private val imageMimes = arrayListOf("png", "ico")
+	private val imageMimes = listOf("png", "ico")
 	private val client = OkHttpClient()
 
 	override fun getIconPath(domain: String): String = try {
@@ -39,15 +41,15 @@ class DirectNetworkLoader : NetworkLoader {
 		""
 	}
 	private fun getIcon(target: String): String? {
-		Log.d(javaClass, "Targeting host $target")
+		"Targeting host $target".logd(javaClass)
 		val request = Request.Builder().url(target).head().build()
 		return try {
 			val r = client.newCall(request).execute()
 			val xHeader = r.header("Content-Type")
-			Log.v(javaClass, "Domain XHeader: $xHeader")
+			"Domain XHeader: $xHeader".logd(javaClass)
 			// Check that the response has a { Content-Type: 'image/...' } header
-			// This may need to be relaxed if websites don't use that mime
-			if(xHeader != null && xHeader.startsWith("image")) {
+			// This may need to be relaxed if websites don't use that mime (case and point - DockerHub uses octet stream)
+			if(xHeader != null && (xHeader.startsWith("image") || xHeader == MediaType.APPLICATION_OCTET_STREAM_VALUE)) {
 				r.close()
 				return target
 			}

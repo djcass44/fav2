@@ -19,11 +19,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	id("org.springframework.boot") version "2.2.2.RELEASE"
-	id("io.spring.dependency-management") version "1.0.8.RELEASE"
+	id("org.springframework.boot") version "2.2.4.RELEASE"
+	id("io.spring.dependency-management") version "1.0.9.RELEASE"
 	kotlin("jvm") version "1.3.61"
 	kotlin("plugin.spring") version "1.3.61"
-	kotlin("plugin.jpa") version "1.3.61"
 	kotlin("kapt") version "1.3.61"
 	id("com.github.ben-manes.versions") version "0.27.0"
 }
@@ -44,13 +43,13 @@ repositories {
 }
 
 val junitVersion: String by project
-extra["springCloudVersion"] = "Hoxton.RELEASE"
+extra["springCloudVersion"] = "Hoxton.SR1"
 
 dependencies {
 	// standard library
 	implementation(kotlin("stdlib-jdk8"))
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation(kotlin("reflect"))
 
 	implementation("com.sun.activation:javax.activation:1.2.0")
 
@@ -61,22 +60,28 @@ dependencies {
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
 
+	implementation("com.github.djcass44.castive-utilities:core:v5.RC3")
 	implementation("com.github.djcass44:log2:4.1")
 	implementation("org.jsoup:jsoup:1.12.1")
-	implementation("com.squareup.okhttp3:okhttp:4.2.2")
-	implementation("com.google.guava:guava:28.1-jre")
+	implementation("com.squareup.okhttp3:okhttp:4.3.1")
+	implementation("com.google.guava:guava:28.2-jre")
 
-	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.2")
+	implementation("com.twelvemonkeys.imageio:imageio-core:3.5")
+	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.5")
 
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.1")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2")
 
 	// swagger
 	implementation("io.springfox:springfox-swagger2:2.9.2")
 	implementation("io.springfox:springfox-swagger-ui:2.9.2")
 
 	// testing
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude("org.junit.jupiter")
+		exclude("org.junit.vintage")
+	}
 	testImplementation("org.jetbrains.kotlin:kotlin-test")
+	testImplementation("org.hamcrest:hamcrest:2.2")
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
@@ -95,7 +100,7 @@ configure<JavaPluginConvention> {
 }
 tasks {
 	wrapper {
-		gradleVersion = "6.0.1"
+		gradleVersion = "6.1"
 		distributionType = Wrapper.DistributionType.ALL
 	}
 	withType<KotlinCompile>().all {
