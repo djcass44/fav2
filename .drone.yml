@@ -52,6 +52,7 @@ steps:
         - ingress.host=icon-dev.v2.dcas.dev
         - image.tag=${DRONE_COMMIT_SHA}
         - spring.profile=development
+        - persistence.storageClassName=nfs
     when:
       branch:
         exclude: master
@@ -69,6 +70,7 @@ steps:
         - ingress.host=icon.v2.dcas.dev
         - image.tag=${DRONE_BRANCH}
         - spring.profile=production
+        - persistence.storageClassName=nfs
     when:
       branch:
         - master
