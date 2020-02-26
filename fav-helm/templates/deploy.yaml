@@ -40,6 +40,8 @@ spec:
       - env:
           - name: SPRING_CLOUD_CONFIG_ENABLED
             value: "true"
+          - name: SPRING_CLOUD_CONFIG_URI
+            value: {{ .Values.spring.configUri }}
           - name: SPRING_PROFILES_ACTIVE
             value: {{ .Values.spring.profile | quote }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
