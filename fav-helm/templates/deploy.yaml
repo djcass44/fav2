@@ -36,19 +36,6 @@ spec:
       imagePullSecrets:
       {{- toYaml . | nindent 8 }}
     {{- end }}
-      initContainers:
-      - name: permissions
-        image: bitnami/minideb:stretch
-        imagePullPolicy: Always
-        command:
-          - /bin/sh
-          - -cx
-          - |
-            echo "current user id: `id`"
-            chown -R 1001:1001 /data
-        volumeMounts:
-          - mountPath: /data
-            name: data
       containers:
       - env:
           - name: SPRING_CLOUD_CONFIG_ENABLED
