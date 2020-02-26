@@ -20,13 +20,12 @@ import com.google.common.util.concurrent.RateLimiter
 import dev.castive.fav2.Fav
 import dev.castive.fav2.TimedCache
 import dev.castive.fav2.config.AppConfig
-import dev.castive.fav2.config.CacheConfig
-import dev.castive.fav2.error.BadRequestResponse
-import dev.castive.fav2.error.RateLimitResponse
 import dev.castive.log2.loge
 import dev.castive.log2.logi
 import dev.castive.log2.logok
 import dev.castive.log2.logv
+import dev.dcas.util.spring.responses.BadRequestResponse
+import dev.dcas.util.spring.responses.RateLimitResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -41,7 +40,8 @@ import javax.imageio.ImageIO
 @Service
 class IconLoader @Autowired constructor(
 	private val config: AppConfig,
-	cacheConfig: CacheConfig
+	private val fav: Fav,
+	private val timedCache: TimedCache<String, BufferedImage>
 ) {
 	private final val cacheListener = object : TimedCache.TimedCacheListener<String, BufferedImage> {
 		override suspend fun onAgeLimitReached(key: String, value: BufferedImage) = withContext(Dispatchers.IO) {
@@ -60,14 +60,6 @@ class IconLoader @Autowired constructor(
 
 	}
 
-
-	private val cache = TimedCache(
-		cacheConfig.limit,
-		cacheConfig.delay,
-		cacheListener
-	)
-	private val fav = Fav(cache = cache, appConfig = config)
-
 	private val prefixInsecure = "http://"
 	private val prefixSecure = "https://"
 
@@ -76,16 +68,17 @@ class IconLoader @Autowired constructor(
 	@PostConstruct
 	fun init() {
 		"Using rate limit: ${config.rate}".logi(javaClass)
+		timedCache.listener = cacheListener
 	}
 
 
 	fun deleteFromCache(url: String): Boolean {
 		val domain = getBestUrl(url)
 		val name = Fav.dest(domain)
-		return cache.remove(name)
+		return timedCache.remove(name)
 	}
 
-	fun peekCache(): List<Pair<String, Int>> = cache.peek()
+	fun peekCache(): List<Pair<String, Int>> = timedCache.peek()
 
 
 	fun loadStream(url: String): InputStream? {
@@ -104,7 +97,7 @@ class IconLoader @Autowired constructor(
 			"Unable to parse domain: $domain".loge(javaClass, e)
 			return null
 		}
-		val existing = cache[name]
+		val existing = timedCache[name]
 		return if(existing != null) {
 			"Located cached item for $name".logi(javaClass)
 			// convert the BufferedImage into an inputstream
@@ -116,6 +109,7 @@ class IconLoader @Autowired constructor(
 			"Attempting to serve file: ${targetFile.absolutePath}".logi(javaClass)
 			if(!targetFile.exists()) run {
 				// The user has requested a url which we haven't downloaded yet, so download it for next time
+				"Failed to locate cached file for url: ${targetFile.name}".logi(javaClass)
 				GlobalScope.launch {
 					fav.loadDomain(domain)
 				}
@@ -125,7 +119,7 @@ class IconLoader @Autowired constructor(
 			GlobalScope.launch {
 				withContext(Dispatchers.IO) {
 					"Loading item $name into cache from disk".logv(javaClass)
-					cache[name] = ImageIO.read(targetFile)
+					timedCache[name] = ImageIO.read(targetFile)
 				}
 			}
 			FileInputStream(targetFile)

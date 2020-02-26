@@ -27,7 +27,7 @@ import kotlin.concurrent.timer
 class TimedCache<K, V>(
 	private val ageLimit: Int = 30,
 	tickDelay: Long = 10_000L,
-	private val listener: TimedCacheListener<K, V>? = null
+	var listener: TimedCacheListener<K, V>? = null
 ) {
 	interface TimedCacheListener<K, V> {
 		suspend fun onAgeLimitReached(key: K, value: V)

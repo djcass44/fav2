@@ -24,6 +24,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.web.client.RestTemplate
 
 class NetworkLoaderTest {
 
@@ -58,7 +59,7 @@ class NetworkLoaderTest {
 		"https://hub.docker.com"
 	])
 	fun getKnownDirect(value: String) {
-		val loader = DirectNetworkLoader()
+		val loader = DirectNetworkLoader(RestTemplate())
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon)
 		assertNotNull(icon)

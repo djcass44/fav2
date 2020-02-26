@@ -16,8 +16,8 @@
 
 package dev.castive.fav2.rest
 
-import dev.castive.fav2.error.BadRequestResponse
 import dev.castive.fav2.service.IconLoader
+import dev.dcas.util.spring.responses.BadRequestResponse
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiResponse
 import io.swagger.annotations.ApiResponses

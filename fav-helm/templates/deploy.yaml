@@ -27,44 +27,67 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
-      {{ if .Values.claimName }}
+      {{ if .Values.persistence.existingClaim }}
       - name: data
         persistentVolumeClaim:
-          claimName: {{ .Values.claimName }}
+          claimName: {{ .Values.persistence.existingClaim }}
       {{ end }}
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+      initContainers:
+      - name: permissions
+        image: bitnami/minideb:stretch
+        imagePullPolicy: Always
+        command:
+          - /bin/sh
+          - -cx
+          - |
+            echo "current user id: `id`"
+            chown -R 1001:1001 /data
+        volumeMounts:
+          - mountPath: /data
+            name: data
       containers:
       - env:
-        {{- range $key, $value := .Values.env }}
-        - name: {{ $key }}
-          value:  {{ $value | quote }}
-        {{- end }}
-        image: "{{ .Values.images.api.repository }}:{{ .Values.images.api.tag }}"
-        imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+          - name: SPRING_CLOUD_CONFIG_ENABLED
+            value: "true"
+          - name: SPRING_PROFILES_ACTIVE
+            value: {{ .Values.spring.profile | quote }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: {{ .Values.name }}
         ports:
-        - containerPort: {{ .Values.env.SERVER_PORT }}
+        - containerPort: {{ .Values.service.port }}
           name: http
         volumeMounts:
         - mountPath: /tmp
           name: tmp
-        {{ if .Values.claimName }}
-        - mountPath: {{ .Values.env.FAV_PATH | quote }}
+        {{ if .Values.persistence.existingClaim }}
+        - mountPath: /data
           name: data
         {{ end }}
         resources:
-{{ toYaml .Values.resources | indent 10 }}
+          {{ toYaml .Values.resources | nindent 12 }}
         readinessProbe:
           httpGet:
             path: /actuator/health
-            port: {{ .Values.env.SERVER_PORT }}
+            port: http
           initialDelaySeconds: 5
           periodSeconds: 5
         securityContext:
-          runAsNonRoot: true
-          privileged: false
-          capabilities:
-            drop:
-              - all
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
+          {{- toYaml .Values.securityContext | nindent 12 }}
       restartPolicy: Always
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -5,11 +5,10 @@ metadata:
     app: {{ .Values.name }}
   name: {{ .Values.name }}
 spec:
-  type: ClusterIP
-  sessionAffinity: "ClientIP"
+  type: {{ .Values.service.type }}
   ports:
   - name: http
-    port: {{ .Values.env.SERVER_PORT }}
-    targetPort: {{ .Values.env.SERVER_PORT }}
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
   selector:
     app: {{ .Values.name }}

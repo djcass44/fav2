@@ -23,7 +23,9 @@ import dev.castive.log2.logd
 import dev.castive.log2.loge
 import dev.castive.log2.logv
 import org.jsoup.Jsoup
+import org.springframework.stereotype.Service
 
+@Service
 class JsoupNetworkLoader: NetworkLoader {
 	/**
 	 * Attempt to load the sites favicon by searching the links within the <head></head>

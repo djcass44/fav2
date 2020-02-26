@@ -29,13 +29,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 import java.net.URI
 import javax.imageio.ImageIO
 
+@Service
 class Fav(
-	private val cache: TimedCache<String, BufferedImage>,
-	private val appConfig: AppConfig
+	private val timedCache: TimedCache<String, BufferedImage>,
+	private val appConfig: AppConfig,
+	private val direct: DirectNetworkLoader,
+	private val jsoup: JsoupNetworkLoader
 ) {
 
 	companion object {
@@ -65,27 +69,34 @@ class Fav(
 			return@withContext
 		}
 		"Loading item $path into cache with key: '${dest(domain)}'".logv(Fav::class.java)
-		cache[dest(domain)] = data
+		timedCache[dest(domain)] = data
 	}
 
 	fun loadDomain(domain: String, skipDownload: Boolean = false): String? {
 		if(!checkDomain(domain)) return null
-		var icon: String? = DirectNetworkLoader().getIconPath(domain)
+		var icon: String? = direct.getIconPath(domain)
 		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
 			if(!skipDownload) GlobalScope.launch { downloadDomain(domain, icon!!) }
 			return "${appConfig.url}/icon?site=${domain.safe()}"
 		}
 		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
-		icon = JsoupNetworkLoader().getIconPath(domain)
+		icon = jsoup.getIconPath(domain)
 		if(icon != null && icon.isNotBlank()) {
-			if(!skipDownload) GlobalScope.launch { downloadDomain(domain, icon) }
+			if(!skipDownload) {
+				GlobalScope.launch {
+					downloadDomain(domain, icon)
+				}
+			}
 			return "${appConfig.url}/icon?site=${domain.safe()}"
 		}
-
 		return null
 	}
 
+	/**
+	 * Check whether we are allowed to probe a domain
+	 * Returns false if protocol is HTTP (without TLS)
+	 */
 	internal fun checkDomain(domain: String): Boolean {
 		if(domain.startsWith("http://")) Log.w(javaClass, "Loading of insecure origins is not recommended.")
 		return !domain.startsWith("http://")

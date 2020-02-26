@@ -17,17 +17,22 @@
 
 package dev.castive.fav2.net
 
-import dev.castive.log2.Log
 import dev.castive.log2.logd
 import dev.castive.log2.loge
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import dev.castive.log2.logv
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 import java.net.URI
 
-class DirectNetworkLoader : NetworkLoader {
+@Service
+class DirectNetworkLoader @Autowired constructor(
+	private val restTemplate: RestTemplate
+): NetworkLoader {
 	private val imageMimes = listOf("png", "ico")
-	private val client = OkHttpClient()
 
 	override fun getIconPath(domain: String): String = try {
 		val uri = URI(domain)
@@ -42,22 +47,19 @@ class DirectNetworkLoader : NetworkLoader {
 	}
 	private fun getIcon(target: String): String? {
 		"Targeting host $target".logd(javaClass)
-		val request = Request.Builder().url(target).head().build()
 		return try {
-			val r = client.newCall(request).execute()
-			val xHeader = r.header("Content-Type")
-			"Domain XHeader: $xHeader".logd(javaClass)
+			val response = restTemplate.exchange(target, HttpMethod.HEAD, HttpEntity.EMPTY, Nothing::class.java)
+			val contentType = response.headers.contentType
+			"Domain contentType: $contentType".logd(javaClass)
 			// Check that the response has a { Content-Type: 'image/...' } header
 			// This may need to be relaxed if websites don't use that mime (case and point - DockerHub uses octet stream)
-			if(xHeader != null && (xHeader.startsWith("image") || xHeader == MediaType.APPLICATION_OCTET_STREAM_VALUE)) {
-				r.close()
+			if(contentType != null && (contentType.isCompatibleWith(MediaType.parseMediaType("image/*")) || contentType == MediaType.APPLICATION_OCTET_STREAM)) {
 				return target
 			}
-			r.close()
 			null
 		}
 		catch (e: Exception) {
-			Log.v(javaClass, "Failed to get direct favicon at location: $target", e)
+			"Failed to get direct favicon at location: $target".logv(javaClass, e)
 			null
 		}
 	}

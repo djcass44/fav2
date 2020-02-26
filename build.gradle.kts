@@ -37,6 +37,7 @@ val moduleName by extra("dev.castive.fav2")
 val javaHome: String = System.getProperty("java.home")
 
 repositories {
+	maven(url = "https://mvn.v2.dcas.dev")
 	maven(url = "https://jitpack.io")
 	mavenCentral()
 	jcenter()
@@ -60,10 +61,11 @@ dependencies {
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
 
-	implementation("com.github.djcass44.castive-utilities:core:v5.RC3")
+	implementation("com.github.djcass44:castive-utilities:v6.RC2") {
+		exclude("org.springframework.boot", "spring-boot-starter-data-jpa")
+	}
 	implementation("com.github.djcass44:log2:4.1")
 	implementation("org.jsoup:jsoup:1.12.1")
-	implementation("com.squareup.okhttp3:okhttp:4.3.1")
 	implementation("com.google.guava:guava:28.2-jre")
 
 	implementation("com.twelvemonkeys.imageio:imageio-core:3.5")
