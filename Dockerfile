@@ -1,33 +1,29 @@
 # STAGE 1 - BUILD
-FROM gradle:jdk12 as GRADLE_CACHE
-LABEL maintainer="Django Cass <dj.cass44@gmail.com>"
+FROM harbor.v2.dcas.dev/library/gradle:jdk13 as GRADLE_CACHE
+LABEL maintainer="Django Cass <django@dcas.dev>"
 
 WORKDIR /app
 
-# Dry run for caching
 COPY . .
 
-RUN gradle shadowJar -x test
+# build the jar
+RUN gradle build -x test
 
 # STAGE 2 - RUN
-FROM adoptopenjdk/openjdk12:alpine-jre
-LABEL maintainer="Django Cass <dj.cass44@gmail.com>"
+FROM harbor.v2.dcas.dev/djcass44/adoptopenjdk-spring-base:13-alpine-jre
+LABEL maintainer="Django Cass <django@dcas.dev>"
 
-ENV FAV_ALLOW_CORS=false \
-    FAV_ALLOW_HTTP=false \
-    FAV_DEBUG=false \
-    FAV_HTTP_PORT=8080 \
-    FAV_DATA="/data" \
-    USER=fav
-
+# create the non-root user to run as
+ENV USER=fav
 RUN addgroup -S ${USER} && adduser -S ${USER} -G ${USER}
 
 WORKDIR /app
-COPY --from=GRADLE_CACHE /app/build/libs/fav.jar .
+COPY --from=GRADLE_CACHE /app/build/libs/fav2.jar .
 
-EXPOSE $FAV_HTTP_PORT
-
+# set user permissions
 RUN chown -R ${USER}:${USER} /app
+# drop from root
 USER ${USER}
 
-ENTRYPOINT ["java", "-jar", "fav.jar"]
+# run the app
+ENTRYPOINT ["java", "-jar", "fav2.jar"]

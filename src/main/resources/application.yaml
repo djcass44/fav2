@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: fav2
+  profiles:
+    active: dev
+fav:
+  path: "./data"
+  url: http://localhost:8080
+  rate: 10.0
+cache:
+  limit: 60
+  delay: 10000
+logging:
+  level:
+    dev.castive: trace
+    dev.dcas: trace

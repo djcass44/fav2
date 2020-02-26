@@ -17,6 +17,7 @@
 package dev.castive.fav2
 
 import dev.castive.log2.loga
+import dev.castive.log2.loge
 import dev.castive.log2.logi
 import dev.castive.log2.logv
 import kotlinx.coroutines.*
@@ -25,8 +26,8 @@ import kotlin.concurrent.timer
 
 class TimedCache<K, V>(
 	private val ageLimit: Int = 30,
-	private val listener: TimedCacheListener<K, V>? = null,
-	tickDelay: Long = 10_000L
+	tickDelay: Long = 10_000L,
+	var listener: TimedCacheListener<K, V>? = null
 ) {
 	interface TimedCacheListener<K, V> {
 		suspend fun onAgeLimitReached(key: K, value: V)
@@ -44,6 +45,19 @@ class TimedCache<K, V>(
 
 	operator fun set(key: K, value: V) {
 		cache[key] = 0 to value
+	}
+
+	fun peek(): List<Pair<K, Int>> = cache.map {
+		it.key to it.value.first
+	}
+
+	fun remove(key: K): Boolean = try {
+		cache.remove(key)
+		true
+	}
+	catch (e: Exception) {
+		"Failed to remove item from cache with key: $key".loge(javaClass, e)
+		false
 	}
 
 	init {

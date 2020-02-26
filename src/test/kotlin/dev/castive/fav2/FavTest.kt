@@ -18,16 +18,20 @@
 package dev.castive.fav2
 
 import dev.castive.log2.Log
-import org.junit.jupiter.api.Assertions.*
+import dev.dcas.util.extend.safe
+import dev.dcas.util.spring.test.BaseSpringBootTest
+import org.hamcrest.CoreMatchers.endsWith
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.awt.image.BufferedImage
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import org.springframework.beans.factory.annotation.Autowired
 
-class FavTest {
-	private val cache = TimedCache<String, BufferedImage>()
+class FavTest @Autowired constructor(
+	private val fav: Fav
+): BaseSpringBootTest() {
 
 	@ParameterizedTest
 	@ValueSource(strings = [
@@ -36,22 +40,20 @@ class FavTest {
 		"https://apple.com"
 	])
 	fun getKnown(value: String) {
-		val icon = Fav(cache = cache).loadDomain(value, skipDownload = true)
+		val icon = fav.loadDomain(value, skipDownload = true)
 		Log.i(javaClass, "Icon: $icon")
 		assertNotNull(icon)
-		assertTrue(icon!!.endsWith(URLEncoder.encode(value, StandardCharsets.UTF_8)))
+		assertThat(icon, endsWith(value.safe()))
 	}
 
 	@Test
 	fun checkSecure() {
-		val fav = Fav(debug = false, cache = cache)
 		val allowed = fav.checkDomain("https://google.com")
-		assertTrue(allowed)
+		assertThat(allowed, equalTo(true))
 	}
 	@Test
 	fun checkInsecure() {
-		val fav = Fav(debug = false, cache =  cache)
 		val allowed = fav.checkDomain("http://google.com")
-		assertFalse(allowed)
+		assertThat(allowed, equalTo(false))
 	}
 }

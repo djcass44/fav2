@@ -19,9 +19,14 @@ package dev.castive.fav2.net
 
 import dev.castive.fav2.Definitions
 import dev.castive.log2.Log
+import dev.castive.log2.logd
+import dev.castive.log2.loge
+import dev.castive.log2.logv
 import org.jsoup.Jsoup
+import org.springframework.stereotype.Service
 
-class JsoupNetworkLoader(private val debug: Boolean): NetworkLoader {
+@Service
+class JsoupNetworkLoader: NetworkLoader {
 	/**
 	 * Attempt to load the sites favicon by searching the links within the <head></head>
 	 * E.g. <link rel="shortcut icon" href="https://github.githubassets.com/favicon.ico">
@@ -31,18 +36,33 @@ class JsoupNetworkLoader(private val debug: Boolean): NetworkLoader {
 			val document = Jsoup.connect(domain).get()
 			val validIcons = arrayListOf<String>()
 			val icon = document.head().select("link[rel]").select("link[href]")
-			if (debug) Log.d(javaClass, "Loaded ${icon.size} links")
+			Log.d(javaClass, "Loaded ${icon.size} links")
 			icon.forEach {
+				"Checking 'rel': ${it.attr("rel")}".logd(javaClass)
 				if (Definitions.contains(it.attr("rel"))) {
 					validIcons.add(it.attr("href"))
-					if (debug) Log.d(javaClass, it.attr("href"))
+					"Found possible image: ${it.attr("href")}".logv(javaClass)
 				}
 			}
-			return if (validIcons.isEmpty()) null else validIcons[0]
+			return if (validIcons.isEmpty()) null else getAbsoluteUrl(domain, validIcons[0])
 		}
 		catch (e: Exception) {
-			Log.e(javaClass, "Failed to get icon: $e")
+			"Failed to get icon for domain: $domain".loge(javaClass, e)
 			return null
+		}
+	}
+
+	/**
+	 * Make sure that the image url is absolute
+	 * E.g. /img/favicon.png -> example.com/img/favicon.png
+	 */
+	internal fun getAbsoluteUrl(domain: String, imageUrl: String): String {
+		val safeDomain = domain.removeSuffix("/")
+		return when {
+			imageUrl.startsWith("//") -> "https:${imageUrl}"
+			imageUrl.startsWith("/") -> safeDomain + imageUrl
+			!imageUrl.startsWith("http") -> "$safeDomain/$imageUrl"
+			else -> imageUrl
 		}
 	}
 }

@@ -1,0 +1,16 @@
+{{- if .Values.persistence.storageClassName }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  finalizers:
+    - kubernetes.io/pvc-protection
+  name: {{ .Values.name }}
+{{- with .Values.persistence }}
+spec:
+  accessModes: {{ .accessModes }}
+  resources:
+    requests:
+      storage: {{ .storage }}
+  storageClassName: {{ .storageClassName }}
+{{- end }}
+{{- end }}

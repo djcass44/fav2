@@ -15,98 +15,106 @@
  *
  */
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	kotlin("jvm") version "1.3.50"
-	java
-	application
-	id("com.github.johnrengelman.shadow") version "5.1.0"
-	id("org.beryx.jlink") version "2.16.2"
+	id("org.springframework.boot") version "2.2.4.RELEASE"
+	id("io.spring.dependency-management") version "1.0.9.RELEASE"
+	kotlin("jvm") version "1.3.61"
+	kotlin("plugin.spring") version "1.3.61"
+	kotlin("kapt") version "1.3.61"
 	id("com.github.ben-manes.versions") version "0.27.0"
 }
 group = "dev.castive"
-version = "0.3"
+version = "0.4"
+java.apply {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
 
 val moduleName by extra("dev.castive.fav2")
 val javaHome: String = System.getProperty("java.home")
 
-application {
-	mainClassName = "dev.castive.fav2.http.EntrypointKt"
-	applicationDefaultJvmArgs = listOf(
-		"-Djava.util.logging.config.file=src/main/resources/logging.properties"
-	)
-}
-
 repositories {
+	maven(url = "https://mvn.v2.dcas.dev")
 	maven(url = "https://jitpack.io")
 	mavenCentral()
 	jcenter()
 }
 
-val kotlinVersion: String by project
 val junitVersion: String by project
-val jettyVersion: String by project
+extra["springCloudVersion"] = "Hoxton.SR1"
 
 dependencies {
 	// standard library
-	implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
+	implementation(kotlin("stdlib-jdk8"))
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
+	implementation(kotlin("reflect"))
+
 	implementation("com.sun.activation:javax.activation:1.2.0")
 
-	implementation("com.github.djcass44:log2:3.4")
+	// spring
+	implementation("org.springframework.boot:spring-boot-starter")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	kapt("org.springframework.boot:spring-boot-configuration-processor")
+	implementation("org.springframework.cloud:spring-cloud-starter-config")
+
+	implementation("com.github.djcass44:castive-utilities:v6.RC2") {
+		exclude("org.springframework.boot", "spring-boot-starter-data-jpa")
+	}
+	implementation("com.github.djcass44:log2:4.1")
 	implementation("org.jsoup:jsoup:1.12.1")
-	implementation("com.squareup.okhttp3:okhttp:3.14.0")
+	implementation("com.google.guava:guava:28.2-jre")
 
-	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.4.2")
+	implementation("com.twelvemonkeys.imageio:imageio-core:3.5")
+	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.5")
 
-	implementation("io.javalin:javalin:3.6.0")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
-	implementation("org.slf4j:slf4j-simple:1.7.26")
-
-	// http2
-	implementation("org.eclipse.jetty.http2:http2-server:$jettyVersion")
-	implementation("org.eclipse.jetty:jetty-alpn-conscrypt-server:$jettyVersion")
-
-	implementation("com.google.guava:guava:28.1-jre")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2")
 
 	// swagger
-	implementation("io.swagger.core.v3:swagger-core:2.0.8")
-	implementation("org.webjars:swagger-ui:3.23.8")
+	implementation("io.springfox:springfox-swagger2:2.9.2")
+	implementation("io.springfox:springfox-swagger-ui:2.9.2")
 
 	// testing
-	testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude("org.junit.jupiter")
+		exclude("org.junit.vintage")
+	}
+	testImplementation("org.jetbrains.kotlin:kotlin-test")
+	testImplementation("org.hamcrest:hamcrest:2.2")
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+	}
+}
+
 configure<JavaPluginConvention> {
-	sourceCompatibility = JavaVersion.VERSION_12
-	targetCompatibility = JavaVersion.VERSION_12
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
 }
 tasks {
+	wrapper {
+		gradleVersion = "6.1"
+		distributionType = Wrapper.DistributionType.ALL
+	}
 	withType<KotlinCompile>().all {
-		kotlinOptions.jvmTarget = "12"
-	}
-	withType<ShadowJar> {
-		baseName = "fav"
-		classifier = null
-		version = null
-		mergeServiceFiles()
-	}
-	withType<JavaCompile>().all {
-		inputs.property("moduleName", moduleName)
-		doFirst {
-			options.compilerArgs = listOf(
-				"--module-path", classpath.asPath,
-				"--patch-module", "$moduleName=${sourceSets["main"].output.asPath}"
-			)
-			classpath = files()
+		kotlinOptions {
+			freeCompilerArgs = listOf("-Xjsr305=strict")
+			jvmTarget = "11"
 		}
 	}
 	withType<Test> {
 		useJUnitPlatform()
+	}
+	withType<BootJar> {
+		archiveFileName.set("${archiveBaseName.get()}.${archiveExtension.get()}")
 	}
 }

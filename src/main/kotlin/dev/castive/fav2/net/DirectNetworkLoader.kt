@@ -17,15 +17,22 @@
 
 package dev.castive.fav2.net
 
-import dev.castive.log2.Log
+import dev.castive.log2.logd
 import dev.castive.log2.loge
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import dev.castive.log2.logv
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 import java.net.URI
 
-class DirectNetworkLoader : NetworkLoader {
-	private val imageMimes = arrayListOf("png", "ico")
-	private val client = OkHttpClient()
+@Service
+class DirectNetworkLoader @Autowired constructor(
+	private val restTemplate: RestTemplate
+): NetworkLoader {
+	private val imageMimes = listOf("png", "ico")
 
 	override fun getIconPath(domain: String): String = try {
 		val uri = URI(domain)
@@ -35,27 +42,24 @@ class DirectNetworkLoader : NetworkLoader {
 		}.firstOrNull() ?: ""
 	}
 	catch (e: Exception) {
-		"Failed to get icon path: $domain".loge(javaClass)
+		"Failed to get icon path: $domain".loge(javaClass, e)
 		""
 	}
 	private fun getIcon(target: String): String? {
-		Log.d(javaClass, "Targeting host $target")
-		val request = Request.Builder().url(target).head().build()
+		"Targeting host $target".logd(javaClass)
 		return try {
-			val r = client.newCall(request).execute()
-			val xHeader = r.header("Content-Type")
-			Log.v(javaClass, "Domain XHeader: $xHeader")
+			val response = restTemplate.exchange(target, HttpMethod.HEAD, HttpEntity.EMPTY, Nothing::class.java)
+			val contentType = response.headers.contentType
+			"Domain contentType: $contentType".logd(javaClass)
 			// Check that the response has a { Content-Type: 'image/...' } header
-			// This may need to be relaxed if websites don't use that mime
-			if(xHeader != null && xHeader.startsWith("image")) {
-				r.close()
+			// This may need to be relaxed if websites don't use that mime (case and point - DockerHub uses octet stream)
+			if(contentType != null && (contentType.isCompatibleWith(MediaType.parseMediaType("image/*")) || contentType == MediaType.APPLICATION_OCTET_STREAM)) {
 				return target
 			}
-			r.close()
 			null
 		}
 		catch (e: Exception) {
-			Log.v(javaClass, "Failed to get direct favicon")
+			"Failed to get direct favicon at location: $target".logv(javaClass, e)
 			null
 		}
 	}

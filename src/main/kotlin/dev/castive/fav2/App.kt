@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019 Django Cass
+ *  Copyright 2019 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -12,18 +12,18 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
- *
  */
 
 package dev.castive.fav2
 
-object Definitions {
-	private val possibleNames = arrayOf(
-		"favicon",
-		"shortcut icon",
-		"apple-touch-icon"
-	)
-	fun contains(str: String): Boolean {
-		return possibleNames.any { it.contains(str, ignoreCase = true) }
-	}
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.runApplication
+
+@EnableConfigurationProperties
+@SpringBootApplication
+class App
+
+fun main() {
+	runApplication<App>()
 }

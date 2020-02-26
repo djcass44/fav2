@@ -3,17 +3,11 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {{ .Values.name }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "true"
-    {{ if .Values.ingress.hsts }}
-    ingress.kubernetes.io/frame-deny: "true"
-    ingress.kubernetes.io/hsts-max-age: "31536000"
-    ingress.kubernetes.io/hsts-include-subdomains: "true"
-    ingress.kubernetes.io/hsts-preload: "true"
-    ingress.kubernetes.io/referrer-policy: "no-referrer"
-    ingress.kubernetes.io/browser-xss-filter: "true"
-    ingress.kubernetes.io/content-type-nosniff: "true"
-    {{ end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
 spec:
   rules:
   - host: {{ .Values.ingress.host }}
@@ -22,5 +16,5 @@ spec:
         - path: /
           backend:
             serviceName: {{ .Values.name }}
-            servicePort: {{ .Values.env.FAV_HTTP_PORT }}
+            servicePort: {{ .Values.service.port }}
 {{- end }}

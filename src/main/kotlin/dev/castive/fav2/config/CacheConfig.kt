@@ -14,19 +14,16 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.util
+package dev.castive.fav2.config
 
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
-/**
- * Convert a string to be URL safe
- */
-fun String.safe(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
+@Component
+class CacheConfig {
+	@Value("\${cache.limit}")
+	val limit: Int = 60
 
-/**
- * Load the environment variable by this string
- */
-fun String.env(default: String = ""): String = EnvUtil.getEnv(this, default)
-
-fun String.asEnv(default: String = "") = EnvUtil.getEnv(this, default)
+	@Value("\${cache.delay}")
+	val delay: Long = 10_000L
+}

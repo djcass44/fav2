@@ -18,9 +18,13 @@
 package dev.castive.fav2.net
 
 import dev.castive.log2.Log
+import org.hamcrest.CoreMatchers.anyOf
+import org.hamcrest.CoreMatchers.endsWith
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.web.client.RestTemplate
 
 class NetworkLoaderTest {
 
@@ -29,11 +33,12 @@ class NetworkLoaderTest {
 		"https://github.com"
 	])
 	fun getKnownDocument(value: String) {
-		val loader = JsoupNetworkLoader(true)
+		val loader = JsoupNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNotNull(icon)
 		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
+		assertThat(icon, anyOf(endsWith("png"), endsWith("ico")))
 	}
 	@ParameterizedTest
 	@ValueSource(strings = [
@@ -41,7 +46,7 @@ class NetworkLoaderTest {
 		"https://apple.com"
 	])
 	fun getFailDocument(value: String) {
-		val loader = JsoupNetworkLoader(true)
+		val loader = JsoupNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNull(icon)
@@ -51,13 +56,13 @@ class NetworkLoaderTest {
 		"https://github.com",
 		"https://google.com",
 		"https://apple.com",
-		"https://jmp.castive.dev"
+		"https://hub.docker.com"
 	])
 	fun getKnownDirect(value: String) {
-		val loader = DirectNetworkLoader()
+		val loader = DirectNetworkLoader(RestTemplate())
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon)
 		assertNotNull(icon)
-		assertTrue(icon.endsWith("png") || icon.endsWith("ico"))
+		assertThat(icon, anyOf(endsWith("png"), endsWith("ico")))
 	}
 }
