@@ -71,6 +71,7 @@ steps:
         - image.tag=${DRONE_BRANCH}
         - spring.profile=production
         - persistence.storageClassName=nfs
+        - replicas=2
     when:
       branch:
         - master
