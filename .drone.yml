@@ -67,6 +67,7 @@ steps:
       values:
         - master.persistence.enabled=false
         - slave.persistence.enabled=false
+        - usePassword=false
     when:
       branch:
         exclude: master
@@ -103,6 +104,7 @@ steps:
       values:
         - master.persistence.storageClass=nfs
         - slave.persistence.storageClass=nfs
+        - usePassword=false
     when:
       branch:
         exclude: master
