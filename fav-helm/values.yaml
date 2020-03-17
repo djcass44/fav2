@@ -4,14 +4,6 @@ replicas: 1
 imagePullSecrets:
   - name: v2-dcas.dev
 
-# PVC to use
-persistence:
-#  storageClassName: nfs
-  accessModes:
-    - ReadWriteMany
-  storage: 1Gi
-#  existingClaim: fav
-
 spring:
   profile: local
   configUri: http://dcas-cloud-config.production.svc.cluster.local:8888

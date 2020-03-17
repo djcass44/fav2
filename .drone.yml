@@ -52,7 +52,6 @@ steps:
         - ingress.host=icon-dev.v2.dcas.dev
         - image.tag=${DRONE_COMMIT_SHA}
         - spring.profile=development
-        - persistence.storageClassName=nfs
     when:
       branch:
         exclude: master
@@ -89,8 +88,8 @@ steps:
         - ingress.host=icon.v2.dcas.dev
         - image.tag=${DRONE_BRANCH}
         - spring.profile=production
-        - persistence.storageClassName=nfs
-        - replicas=2
+        - resources.requests.memory=250Mi
+        - resources.limits.memory=500Mi
     when:
       branch:
         - master

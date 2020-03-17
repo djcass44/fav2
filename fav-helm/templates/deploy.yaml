@@ -27,11 +27,6 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
-      {{ if .Values.persistence.existingClaim }}
-      - name: data
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingClaim }}
-      {{ end }}
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
       {{- toYaml . | nindent 8 }}
@@ -53,10 +48,6 @@ spec:
         volumeMounts:
         - mountPath: /tmp
           name: tmp
-        {{ if .Values.persistence.existingClaim }}
-        - mountPath: /data
-          name: data
-        {{ end }}
         resources:
           {{ toYaml .Values.resources | nindent 12 }}
         readinessProbe:
