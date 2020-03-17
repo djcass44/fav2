@@ -4,8 +4,6 @@ name: default
 
 helm_deploy: &helm_deploy
   mode: upgrade
-  release: fav2
-  chart: ./fav-helm
   wait_for_upgrade: true
   atomic: true
   cleanup_failed_upgrade: true
@@ -43,9 +41,12 @@ steps:
     depends_on:
       - helm_lint
       - docker
+      - deploy_dev_redis
     settings:
       <<: *helm_deploy
       namespace: development
+      release: fav2
+      chart: ./fav-helm
       values:
         - ingress.enabled=true
         - ingress.host=icon-dev.v2.dcas.dev
@@ -55,15 +56,32 @@ steps:
     when:
       branch:
         exclude: master
+  - name: deploy_dev_redis
+    image: harbor.v2.dcas.dev/djcass44/drone-helm3
+    settings:
+      <<: *helm_deploy
+      namespace: development
+      add_repos: ["bitnami=https://charts.bitnami.com/bitnami"]
+      release: fav2-redis
+      chart: bitnami/redis
+      values:
+        - master.persistence.enabled=false
+        - slave.persistence.enabled=false
+    when:
+      branch:
+        exclude: master
     # DEPLOY TO PROD
   - name: deploy_production
     image: harbor.v2.dcas.dev/djcass44/drone-helm3
     depends_on:
       - helm_lint
       - docker
+      - deploy_prod_redis
     settings:
       <<: *helm_deploy
       namespace: production
+      release: fav2
+      chart: ./fav-helm
       values:
         - ingress.enabled=true
         - ingress.host=icon.v2.dcas.dev
@@ -74,6 +92,20 @@ steps:
     when:
       branch:
         - master
+  - name: deploy_prod_redis
+    image: harbor.v2.dcas.dev/djcass44/drone-helm3
+    settings:
+      <<: *helm_deploy
+      namespace: production
+      add_repos: ["bitnami=https://charts.bitnami.com/bitnami"]
+      release: fav2-redis
+      chart: bitnami/redis
+      values:
+        - master.persistence.storageClass=nfs
+        - slave.persistence.storageClass=nfs
+    when:
+      branch:
+        exclude: master
 trigger:
   when:
     event: push

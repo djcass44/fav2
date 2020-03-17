@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Django Cass
+ *  Copyright 2020 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.config
+package dev.castive.fav2.props
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
 
-@Component
-class CacheConfig {
-	@Value("\${cache.limit}")
-	val limit: Int = 60
-
-	@Value("\${cache.delay}")
+@ConstructorBinding
+@ConfigurationProperties(prefix = "cache")
+data class CacheConfig(
+	val limit: Int = 600,
 	val delay: Long = 10_000L
-}
+)

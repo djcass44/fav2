@@ -17,27 +17,27 @@
 
 package dev.castive.fav2
 
-import dev.castive.fav2.config.AppConfig
+import dev.castive.fav2.entity.Icon
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
+import dev.castive.fav2.repo.IconRepo
+import dev.castive.fav2.service.ImageUtils
 import dev.castive.log2.Log
 import dev.castive.log2.loge
 import dev.castive.log2.logok
 import dev.castive.log2.logv
-import dev.dcas.util.extend.safe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
-import java.awt.image.BufferedImage
 import java.net.URI
 import javax.imageio.ImageIO
 
 @Service
 class Fav(
-	private val timedCache: TimedCache<String, BufferedImage>,
-	private val appConfig: AppConfig,
+	private val iconRepo: IconRepo,
+	private val imageUtils: ImageUtils,
 	private val direct: DirectNetworkLoader,
 	private val jsoup: JsoupNetworkLoader
 ) {
@@ -59,7 +59,9 @@ class Fav(
 		}.getOrNull() ?: return@withContext
 		Log.i(Fav::class.java, "Starting to download image at path: $path")
 		// Use ImageIO to load the image into a BufferedImage
-		val image = runCatching { ImageIO.read(uri.toURL()) }.onFailure {
+		val image = runCatching {
+			ImageIO.read(uri.toURL())
+		}.onFailure {
 			"Failed to load favicon data: $domain".loge(Fav::class.java, it)
 		}.onSuccess {
 			"Successfully downloaded image: $path".logok(Fav::class.java)
@@ -69,28 +71,25 @@ class Fav(
 			return@withContext
 		}
 		"Loading item $path into cache with key: '${dest(domain)}'".logv(Fav::class.java)
-		timedCache[dest(domain)] = data
+		iconRepo.save(Icon(dest(domain), imageUtils.biToBase64(data)))
 	}
 
-	fun loadDomain(domain: String, skipDownload: Boolean = false): String? {
-		if(!checkDomain(domain)) return null
+	fun loadDomain(domain: String, skipDownload: Boolean = false) {
+		if(!checkDomain(domain))
+			return
 		var icon: String? = direct.getIconPath(domain)
 		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
 			if(!skipDownload) GlobalScope.launch { downloadDomain(domain, icon!!) }
-			return "${appConfig.url}/icon?site=${domain.safe()}"
+			return
 		}
 		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
 		icon = jsoup.getIconPath(domain)
-		if(icon != null && icon.isNotBlank()) {
-			if(!skipDownload) {
-				GlobalScope.launch {
-					downloadDomain(domain, icon)
-				}
+		if(icon != null && icon.isNotBlank() && !skipDownload) {
+			GlobalScope.launch {
+				downloadDomain(domain, icon)
 			}
-			return "${appConfig.url}/icon?site=${domain.safe()}"
 		}
-		return null
 	}
 
 	/**

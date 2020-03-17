@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Django Cass
+ *  Copyright 2020 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.config
+package dev.castive.fav2.entity
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import org.springframework.data.annotation.Id
+import org.springframework.data.redis.core.RedisHash
 
-@Component
-class AppConfig {
-	@Value("\${fav.path}")
-	val path: String = "/data"
-
-	@Value("\${fav.url}")
-	val url: String = "http://localhost:8080"
-
-	@Value("\${fav.rate}")
-	val rate: Double = 10.0
-}
+@RedisHash
+data class Icon(
+	@Id
+	val name: String,
+	val imageData: String,
+	var age: Int = 0
+)

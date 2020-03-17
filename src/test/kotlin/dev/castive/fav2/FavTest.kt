@@ -17,34 +17,15 @@
 
 package dev.castive.fav2
 
-import dev.castive.log2.Log
-import dev.dcas.util.extend.safe
 import dev.dcas.util.spring.test.BaseSpringBootTest
-import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 
 class FavTest @Autowired constructor(
 	private val fav: Fav
 ): BaseSpringBootTest() {
-
-	@ParameterizedTest
-	@ValueSource(strings = [
-		"https://github.com",
-		"https://google.com",
-		"https://apple.com"
-	])
-	fun getKnown(value: String) {
-		val icon = fav.loadDomain(value, skipDownload = true)
-		Log.i(javaClass, "Icon: $icon")
-		assertNotNull(icon)
-		assertThat(icon, endsWith(value.safe()))
-	}
 
 	@Test
 	fun checkSecure() {

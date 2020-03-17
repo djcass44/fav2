@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Django Cass
+ *  Copyright 2020 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,18 +14,11 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2
+package dev.castive.fav2.repo
 
-import dev.castive.fav2.props.AppConfig
-import dev.castive.fav2.props.CacheConfig
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.runApplication
+import dev.castive.fav2.entity.Icon
+import org.springframework.data.repository.CrudRepository
+import org.springframework.stereotype.Repository
 
-@EnableConfigurationProperties(AppConfig::class, CacheConfig::class)
-@SpringBootApplication
-class App
-
-fun main() {
-	runApplication<App>()
-}
+@Repository
+interface IconRepo: CrudRepository<Icon, String>
