@@ -65,6 +65,7 @@ steps:
       release: fav2-redis
       chart: bitnami/redis
       values:
+        - cluster.enabled=false
         - master.persistence.enabled=false
         - slave.persistence.enabled=false
         - usePassword=false
