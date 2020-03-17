@@ -2,8 +2,22 @@ version: '3'
 services:
   fav:
     image: djcass44/fav2:latest
+    build: .
     restart: always
     ports:
       - 8080:8080
     environment:
-      - FAV_URL=http://localhost:8080
+      - SPRING_REDIS_HOST=redis
+    networks:
+      - redis
+  redis:
+    image: redis:6.0-rc-alpine
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - redis
+
+
+networks:
+  redis:

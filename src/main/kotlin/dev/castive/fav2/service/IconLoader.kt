@@ -18,67 +18,50 @@ package dev.castive.fav2.service
 
 import com.google.common.util.concurrent.RateLimiter
 import dev.castive.fav2.Fav
-import dev.castive.fav2.TimedCache
-import dev.castive.fav2.config.AppConfig
+import dev.castive.fav2.props.AppConfig
+import dev.castive.fav2.repo.IconRepo
 import dev.castive.log2.loge
 import dev.castive.log2.logi
-import dev.castive.log2.logok
 import dev.castive.log2.logv
 import dev.dcas.util.spring.responses.BadRequestResponse
 import dev.dcas.util.spring.responses.RateLimitResponse
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.awt.image.BufferedImage
-import java.io.*
-import javax.annotation.PostConstruct
-import javax.imageio.ImageIO
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.util.*
 
 @Service
-class IconLoader @Autowired constructor(
+class IconLoader(
+	private val imageUtils: ImageUtils,
 	private val config: AppConfig,
 	private val fav: Fav,
-	private val timedCache: TimedCache<String, BufferedImage>
+	private val iconRepo: IconRepo
 ) {
-	private final val cacheListener = object : TimedCache.TimedCacheListener<String, BufferedImage> {
-		override suspend fun onAgeLimitReached(key: String, value: BufferedImage) = withContext(Dispatchers.IO) {
-			"Writing stale image to disk: $key".logi(Fav::class.java)
-			try {
-				// Write the BufferedImage to disk as a png
-				val file = File("${config.path}${File.separator}${key}")
-				"Attempting to save file: ${file.absolutePath}".logv(Fav::class.java)
-				ImageIO.write(value, "png", file)
-				"Wrote data to path: ${file.absolutePath}".logok(Fav::class.java)
-			}
-			catch (e: IOException) {
-				"Failed to write data: $e".loge(Fav::class.java)
-			}
-		}
-
-	}
 
 	private val prefixInsecure = "http://"
 	private val prefixSecure = "https://"
 
 	private val limit = RateLimiter.create(config.rate)
 
-	@PostConstruct
-	fun init() {
-		"Using rate limit: ${config.rate}".logi(javaClass)
-		timedCache.listener = cacheListener
-	}
-
 
 	fun deleteFromCache(url: String): Boolean {
 		val domain = getBestUrl(url)
 		val name = Fav.dest(domain)
-		return timedCache.remove(name)
+
+		return kotlin.runCatching {
+			iconRepo.deleteById(name)
+			return true
+		}.onFailure {
+			"Failed to remove item from cache: $name".loge(javaClass, it)
+		}.getOrNull() ?: false
 	}
 
-	fun peekCache(): List<Pair<String, Int>> = timedCache.peek()
+	fun peekCache(): List<Pair<String, Int>> = iconRepo.findAll().map {
+		it.name to it.age
+	}
 
 
 	fun loadStream(url: String): InputStream? {
@@ -90,39 +73,22 @@ class IconLoader @Autowired constructor(
 		}
 		val domain = getBestUrl(url)
 		val name = Fav.dest(domain)
-		val targetFile = try {
-			File("${config.path}${File.separator}$name")
-		}
-		catch (e: Exception) {
-			"Unable to parse domain: $domain".loge(javaClass, e)
-			return null
-		}
-		val existing = timedCache[name]
+
+		val existing = iconRepo.findByIdOrNull(name)
 		return if(existing != null) {
 			"Located cached item for $name".logi(javaClass)
-			// convert the BufferedImage into an inputstream
-			val output = ByteArrayOutputStream()
-			ImageIO.write(existing, "png", output)
-			ByteArrayInputStream(output.toByteArray())
+			// convert the data into an inputstream
+			ByteArrayInputStream(
+				Base64.getDecoder().decode(existing.imageData)
+			)
 		}
 		else {
-			"Attempting to serve file: ${targetFile.absolutePath}".logi(javaClass)
-			if(!targetFile.exists()) run {
-				// The user has requested a url which we haven't downloaded yet, so download it for next time
-				"Failed to locate cached file for url: ${targetFile.name}".logi(javaClass)
-				GlobalScope.launch {
-					fav.loadDomain(domain)
-				}
-				return null
-			}
-			// load the file into the cache
+			// The user has requested a url which we haven't downloaded yet, so download it for next time
+			"Failed to locate cached file for url: $name".logi(javaClass)
 			GlobalScope.launch {
-				withContext(Dispatchers.IO) {
-					"Loading item $name into cache from disk".logv(javaClass)
-					timedCache[name] = ImageIO.read(targetFile)
-				}
+				fav.loadDomain(domain)
 			}
-			FileInputStream(targetFile)
+			return null
 		}
 	}
 

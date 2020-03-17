@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Django Cass
+ *  Copyright 2020 Django Cass
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,18 +14,13 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2
+package dev.castive.fav2.props
 
-import dev.castive.fav2.props.AppConfig
-import dev.castive.fav2.props.CacheConfig
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.runApplication
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
 
-@EnableConfigurationProperties(AppConfig::class, CacheConfig::class)
-@SpringBootApplication
-class App
-
-fun main() {
-	runApplication<App>()
-}
+@ConstructorBinding
+@ConfigurationProperties(prefix = "fav")
+data class AppConfig(
+	val rate: Double = 10.0
+)

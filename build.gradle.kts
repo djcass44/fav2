@@ -50,7 +50,7 @@ dependencies {
 	// standard library
 	implementation(kotlin("stdlib-jdk8"))
 	implementation(kotlin("reflect"))
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.+")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
 
 	implementation("com.sun.activation:javax.activation:1.2.0")
 
@@ -58,6 +58,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
 
@@ -76,6 +77,8 @@ dependencies {
 	// swagger
 	implementation("io.springfox:springfox-swagger2:2.9.2")
 	implementation("io.springfox:springfox-swagger-ui:2.9.2")
+
+	implementation("redis.clients:jedis:3.2.+")
 
 	// testing
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {

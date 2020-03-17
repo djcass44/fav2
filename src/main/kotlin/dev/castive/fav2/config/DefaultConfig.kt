@@ -16,20 +16,15 @@
 
 package dev.castive.fav2.config
 
-import dev.castive.fav2.TimedCache
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
-import java.awt.image.BufferedImage
 import java.net.HttpURLConnection
 
 @Configuration
-class Beans @Autowired constructor(
-	private val cacheConfig: CacheConfig
-) {
+class DefaultConfig {
 
 	@ConditionalOnMissingBean
 	@Bean
@@ -40,12 +35,5 @@ class Beans @Autowired constructor(
 				connection.instanceFollowRedirects = true
 			}
 		}
-	)
-
-	@ConditionalOnMissingBean
-	@Bean
-	fun timedCache(): TimedCache<String, BufferedImage> = TimedCache(
-		cacheConfig.limit,
-		cacheConfig.delay
 	)
 }
