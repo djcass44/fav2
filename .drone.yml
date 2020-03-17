@@ -19,19 +19,18 @@ helm_deploy: &helm_deploy
     from_secret: client_key_data
 
 steps:
-  # BUILD DOCKER IMAGE
+  # BUILD OCI IMAGE
   - name: docker
-    image: plugins/docker
+    image: harbor.v2.dcas.dev/library/drone-kaniko
     settings:
       registry: harbor.v2.dcas.dev
-      repo: harbor.v2.dcas.dev/dcas.dev/fav2
+      repo: dcas.dev/fav2
       tags:
+        - latest
         - ${DRONE_BRANCH/\//-}
         - ${DRONE_COMMIT_SHA}
-      username:
-        from_secret: DOCKER_USERNAME
-      password:
-        from_secret: DOCKER_PASSWORD
+      authjson_docker:
+        from_secret: DOCKER_AUTH
     # LINT HELM CHART
   - name: helm_lint
     image: harbor.v2.dcas.dev/djcass44/drone-helm3

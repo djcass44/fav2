@@ -19,11 +19,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	id("org.springframework.boot") version "2.2.4.RELEASE"
+	id("org.springframework.boot") version "2.2.5.RELEASE"
 	id("io.spring.dependency-management") version "1.0.9.RELEASE"
-	kotlin("jvm") version "1.3.61"
-	kotlin("plugin.spring") version "1.3.61"
-	kotlin("kapt") version "1.3.61"
+	kotlin("jvm") version "1.3.70"
+	kotlin("plugin.spring") version "1.3.70"
+	kotlin("kapt") version "1.3.70"
 	id("com.github.ben-manes.versions") version "0.27.0"
 }
 group = "dev.castive"
@@ -44,13 +44,13 @@ repositories {
 }
 
 val junitVersion: String by project
-extra["springCloudVersion"] = "Hoxton.SR1"
+extra["springCloudVersion"] = "Hoxton.SR2"
 
 dependencies {
 	// standard library
 	implementation(kotlin("stdlib-jdk8"))
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
 	implementation(kotlin("reflect"))
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.+")
 
 	implementation("com.sun.activation:javax.activation:1.2.0")
 
@@ -61,7 +61,7 @@ dependencies {
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
 
-	implementation("com.github.djcass44:castive-utilities:v6.RC2") {
+	implementation("com.github.djcass44:castive-utilities:v6.RC3") {
 		exclude("org.springframework.boot", "spring-boot-starter-data-jpa")
 	}
 	implementation("com.github.djcass44:log2:4.1")
