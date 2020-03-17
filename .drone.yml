@@ -107,7 +107,7 @@ steps:
         - usePassword=false
     when:
       branch:
-        exclude: master
+        - master
 trigger:
   when:
     event: push
