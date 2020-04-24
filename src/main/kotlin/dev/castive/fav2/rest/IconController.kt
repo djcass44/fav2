@@ -39,7 +39,8 @@ class IconController(private val loader: IconLoader) {
 		if(site.isESNullOrBlank())
 			throw BadRequestResponse("'site' parameter must not be blank")
 		// get the stream or throw 400
-		val data = loader.getIconFromUrl(site) ?: error("Failed to locate icon at url: '$site'")
+		val hash = site.hashCode()
+		val data = loader.getIconFromUrl(hash, site) ?: error("Failed to locate icon at url: '$site'")
 		val headers = HttpHeaders().apply {
 			contentType = MediaType.IMAGE_PNG
 		}

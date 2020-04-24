@@ -18,6 +18,7 @@ package dev.castive.fav2.service
 
 import dev.castive.fav2.Fav
 import dev.dcas.util.spring.responses.BadRequestResponse
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 
@@ -30,7 +31,8 @@ class IconLoader(
 	private val prefixSecure = "https://"
 
 
-	suspend fun getIconFromUrl(url: String): BufferedImage? {
+	@Cacheable(value = ["icon"], key = "#a0")
+	suspend fun getIconFromUrl(hash: Int, url: String): BufferedImage? {
 		val domain = getBestUrl(url)
 		// The user has requested a url which we haven't downloaded yet, so download it
 		return fav.loadDomain(domain)

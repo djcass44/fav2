@@ -18,13 +18,17 @@
 package dev.castive.fav2.net
 
 import dev.castive.log2.Log
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.anyOf
 import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.web.client.RestTemplate
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.netty.http.client.HttpClient
 
 class NetworkLoaderTest {
 
@@ -32,20 +36,19 @@ class NetworkLoaderTest {
 	@ValueSource(strings = [
 		"https://github.com"
 	])
-	fun getKnownDocument(value: String) {
+	fun getKnownDocument(value: String) = runBlocking {
 		val loader = JsoupNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
 		assertNotNull(icon)
-		assertTrue(icon!!.endsWith("png") || icon.endsWith("ico"))
-		assertThat(icon, anyOf(endsWith("png"), endsWith("ico")))
+		assertThat(icon, anyOf(endsWith("png"), endsWith("ico"), endsWith("svg")))
 	}
 	@ParameterizedTest
 	@ValueSource(strings = [
 		"https://google.com",
 		"https://apple.com"
 	])
-	fun getFailDocument(value: String) {
+	fun getFailDocument(value: String) = runBlocking {
 		val loader = JsoupNetworkLoader()
 		val icon = loader.getIconPath(value)
 		Log.d(javaClass, icon.toString())
@@ -58,10 +61,17 @@ class NetworkLoaderTest {
 		"https://apple.com",
 		"https://hub.docker.com"
 	])
-	fun getKnownDirect(value: String) {
-		val loader = DirectNetworkLoader(RestTemplate())
+	fun getKnownDirect(value: String) = runBlocking {
+		val loader = DirectNetworkLoader(WebClient.builder()
+			.clientConnector(
+				ReactorClientHttpConnector(
+					HttpClient.create()
+						.followRedirect(true)
+				)
+			)
+			.build())
 		val icon = loader.getIconPath(value)
-		Log.d(javaClass, icon)
+		Log.d(javaClass, icon ?: "null")
 		assertNotNull(icon)
 		assertThat(icon, anyOf(endsWith("png"), endsWith("ico")))
 	}

@@ -16,3 +16,4 @@ logging:
   level:
     dev.castive: trace
     dev.dcas: trace
+    org.springframework.cache: trace
