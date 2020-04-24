@@ -17,47 +17,39 @@
 
 package dev.castive.fav2
 
-import dev.castive.fav2.entity.Icon
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
-import dev.castive.fav2.repo.IconRepo
 import dev.castive.fav2.service.ImageUtils
 import dev.castive.log2.Log
 import dev.castive.log2.loge
+import dev.castive.log2.logi
 import dev.castive.log2.logok
-import dev.castive.log2.logv
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import dev.castive.log2.logw
 import org.springframework.stereotype.Service
+import java.awt.image.BufferedImage
 import java.net.URI
 import javax.imageio.ImageIO
 
 @Service
 class Fav(
-	private val iconRepo: IconRepo,
 	private val imageUtils: ImageUtils,
 	private val direct: DirectNetworkLoader,
 	private val jsoup: JsoupNetworkLoader
 ) {
 
-	companion object {
-		/**
-		 * Get the destination filename
-		 */
-		fun dest(path: String): String = "${URI(path).host.replace(".", "_")}.png"
-	}
-
 	/**
 	 * Concurrently get and download a favicon
 	 * The favicon is saved to disk for later use
 	 */
-	private suspend fun downloadDomain(domain: String, path: String) = withContext(Dispatchers.IO) {
-		val uri = kotlin.runCatching { URI(path) }.onFailure {
+	private suspend fun downloadDomain(domain: String, path: String): BufferedImage? {
+		val uri = kotlin.runCatching {
+			URI(path)
+		}.onFailure {
 			"Failed to parse url: $path".loge(Fav::class.java, it)
-		}.getOrNull() ?: return@withContext
-		Log.i(Fav::class.java, "Starting to download image at path: $path")
+		}.getOrNull() ?: return null
+
+
+		"Starting to download image at path: $path".logi(Fav::class.java)
 		// Use ImageIO to load the image into a BufferedImage
 		val image = runCatching {
 			ImageIO.read(uri.toURL())
@@ -66,30 +58,30 @@ class Fav(
 		}.onSuccess {
 			"Successfully downloaded image: $path".logok(Fav::class.java)
 		}
-		val data = image.getOrNull() ?: run {
-			Log.w(Fav::class.java, "Got no image for target: $path")
-			return@withContext
+		return image.getOrNull() ?: run {
+			"Got no image for target: $path".logw(Fav::class.java)
+			return null
 		}
-		"Loading item $path into cache with key: '${dest(domain)}'".logv(Fav::class.java)
-		iconRepo.save(Icon(dest(domain), imageUtils.biToBase64(data)))
 	}
 
-	fun loadDomain(domain: String, skipDownload: Boolean = false) {
-		if(!checkDomain(domain))
-			return
+	suspend fun loadDomain(domain: String, skipDownload: Boolean = false): BufferedImage? {
+		if(!checkDomain(domain)) {
+			"Domain failed minimum checks: $domain".loge(javaClass)
+			return null
+		}
 		var icon: String? = direct.getIconPath(domain)
 		Log.i(javaClass, "Got icon address: $icon")
 		if(icon != null && icon.isNotBlank()) {
-			if(!skipDownload) GlobalScope.launch { downloadDomain(domain, icon!!) }
-			return
+			if(!skipDownload)
+				return downloadDomain(domain, icon)
+			return null
 		}
-		Log.i(javaClass, "Icon is unacceptable, using fallback manual check")
+		"Icon is unacceptable, using fallback manual check".logi(javaClass)
 		icon = jsoup.getIconPath(domain)
 		if(icon != null && icon.isNotBlank() && !skipDownload) {
-			GlobalScope.launch {
-				downloadDomain(domain, icon)
-			}
+			return downloadDomain(domain, icon)
 		}
+		return null
 	}
 
 	/**

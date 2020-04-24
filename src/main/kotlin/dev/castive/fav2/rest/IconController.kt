@@ -17,54 +17,35 @@
 package dev.castive.fav2.rest
 
 import dev.castive.fav2.service.IconLoader
+import dev.dcas.util.extend.isESNullOrBlank
 import dev.dcas.util.spring.responses.BadRequestResponse
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiResponse
-import io.swagger.annotations.ApiResponses
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
-@RequestMapping("/icon")
 @RestController
-class IconController @Autowired constructor(
-	private val loader: IconLoader
-) {
-	@ApiOperation(value = "Get the favicon for a website", response = InputStreamResource::class)
-	@ApiResponses(value = [
-		ApiResponse(code = 200, message = "Icon loaded successfully", response = InputStreamResource::class),
-		ApiResponse(code = 400, message = "Failed to load favicon")
-	])
+class IconController(private val loader: IconLoader) {
+
 	@CrossOrigin("*")
-	@GetMapping
-	fun getImage(@RequestParam site: String): ResponseEntity<*> {
-		if(site.isBlank())
+	@GetMapping("/icon")
+	suspend fun getImage(@RequestParam site: String): ResponseEntity<ByteArray> {
+		if(site.isESNullOrBlank())
 			throw BadRequestResponse("'site' parameter must not be blank")
 		// get the stream or throw 400
-		val stream = loader.loadStream(site) ?: throw BadRequestResponse()
+		val data = loader.getIconFromUrl(site) ?: error("Failed to locate icon at url: '$site'")
 		val headers = HttpHeaders().apply {
 			contentType = MediaType.IMAGE_PNG
 		}
-		return ResponseEntity(InputStreamResource(stream), headers, HttpStatus.OK)
+		// convert the image to a bytearray
+		val baos = ByteArrayOutputStream()
+		ImageIO.write(data, "png", baos)
+		return ResponseEntity(baos.toByteArray(), headers, HttpStatus.OK)
 	}
-
-	@ApiOperation(value = "Delete an item from the cache", response = Boolean::class)
-	@ApiResponses(value = [
-		ApiResponse(code = 200, message = "true"),
-		ApiResponse(code = 200, message = "false")
-	])
-	@DeleteMapping("/cache", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun deleteFromCache(@RequestParam site: String): Boolean {
-		if(site.isBlank())
-			throw BadRequestResponse("'site' parameter must not be blank")
-		return loader.deleteFromCache(site)
-	}
-
-	@ApiOperation(value = "View the contents of the cache")
-	@GetMapping("/cache", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun getCache(): List<Pair<String, Int>> = loader.peekCache()
 }

@@ -14,25 +14,17 @@
  *    limitations under the License.
  */
 
-package dev.castive.fav2.rest
+package dev.castive.fav2.config
 
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RestController
-import springfox.documentation.annotations.ApiIgnore
-import javax.servlet.http.HttpServletResponse
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.config.CorsRegistry
+import org.springframework.web.reactive.config.EnableWebFlux
+import org.springframework.web.reactive.config.WebFluxConfigurer
 
-@ApiIgnore
-@RestController
-class SwaggerController {
-
-	@GetMapping
-	fun index(response: HttpServletResponse) {
-		response.sendRedirect("/swagger-ui.html")
+@Configuration
+@EnableWebFlux
+class WebConfig: WebFluxConfigurer {
+	override fun addCorsMappings(registry: CorsRegistry) {
+		registry.addMapping("/**")
 	}
-
-	@GetMapping("/csrf")
-	fun csrf() {
-		// noop to appease swagger
-	}
-
 }

@@ -19,21 +19,21 @@ package dev.castive.fav2.config
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.client.SimpleClientHttpRequestFactory
-import org.springframework.web.client.RestTemplate
-import java.net.HttpURLConnection
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.netty.http.client.HttpClient
 
 @Configuration
 class DefaultConfig {
 
 	@ConditionalOnMissingBean
 	@Bean
-	fun restTemplate(): RestTemplate = RestTemplate(
-		object : SimpleClientHttpRequestFactory() {
-			override fun prepareConnection(connection: HttpURLConnection, httpMethod: String) {
-				super.prepareConnection(connection, httpMethod)
-				connection.instanceFollowRedirects = true
-			}
-		}
-	)
+	fun webClient(): WebClient = WebClient.builder()
+		.clientConnector(
+			ReactorClientHttpConnector(
+				HttpClient.create()
+					.followRedirect(true)
+			)
+		)
+		.build()
 }

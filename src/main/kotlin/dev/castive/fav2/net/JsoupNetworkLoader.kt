@@ -31,7 +31,7 @@ class JsoupNetworkLoader: NetworkLoader {
 	 * Attempt to load the sites favicon by searching the links within the <head></head>
 	 * E.g. <link rel="shortcut icon" href="https://github.githubassets.com/favicon.ico">
 	 */
-	override fun getIconPath(domain: String): String? {
+	override suspend fun getIconPath(domain: String): String? {
 		try {
 			val document = Jsoup.connect(domain).get()
 			val validIcons = arrayListOf<String>()

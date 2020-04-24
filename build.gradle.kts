@@ -15,12 +15,16 @@
  *
  */
 
+import dev.dcas.gradle.boot
+import dev.dcas.gradle.cloud
+import dev.dcas.gradle.kotlinx
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	id("org.springframework.boot") version "2.2.5.RELEASE"
+	id("org.springframework.boot") version "2.2.6.RELEASE"
 	id("io.spring.dependency-management") version "1.0.9.RELEASE"
+	id("dev.dcas.gradle-util") version "0.1"
 	kotlin("jvm") version "1.3.70"
 	kotlin("plugin.spring") version "1.3.70"
 	kotlin("kapt") version "1.3.70"
@@ -29,8 +33,8 @@ plugins {
 group = "dev.castive"
 version = "0.4"
 java.apply {
-	sourceCompatibility = JavaVersion.VERSION_11
-	targetCompatibility = JavaVersion.VERSION_11
+	sourceCompatibility = JavaVersion.VERSION_13
+	targetCompatibility = JavaVersion.VERSION_13
 }
 
 val moduleName by extra("dev.castive.fav2")
@@ -44,23 +48,23 @@ repositories {
 }
 
 val junitVersion: String by project
-extra["springCloudVersion"] = "Hoxton.SR2"
+extra["springCloudVersion"] = "Hoxton.SR3"
 
 dependencies {
 	// standard library
 	implementation(kotlin("stdlib-jdk8"))
 	implementation(kotlin("reflect"))
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
+	implementation(kotlinx("coroutines-core:1.3.5"))
+	implementation(kotlinx("coroutines-reactor:1.3.5"))
 
 	implementation("com.sun.activation:javax.activation:1.2.0")
 
 	// spring
-	implementation("org.springframework.boot:spring-boot-starter")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation(boot("starter-actuator"))
+	implementation(boot("starter-webflux"))
+	implementation(boot("starter-cache"))
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
-	implementation("org.springframework.cloud:spring-cloud-starter-config")
+	implementation(cloud("starter-config"))
 
 	implementation("com.github.djcass44:castive-utilities:v6.RC3") {
 		exclude("org.springframework.boot", "spring-boot-starter-data-jpa")
@@ -72,13 +76,7 @@ dependencies {
 	implementation("com.twelvemonkeys.imageio:imageio-core:3.5")
 	implementation("com.twelvemonkeys.imageio:imageio-bmp:3.5")
 
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2")
-
-	// swagger
-	implementation("io.springfox:springfox-swagger2:2.9.2")
-	implementation("io.springfox:springfox-swagger-ui:2.9.2")
-
-	implementation("redis.clients:jedis:3.2.+")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.+")
 
 	// testing
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -100,18 +98,18 @@ dependencyManagement {
 }
 
 configure<JavaPluginConvention> {
-	sourceCompatibility = JavaVersion.VERSION_11
-	targetCompatibility = JavaVersion.VERSION_11
+	sourceCompatibility = JavaVersion.VERSION_13
+	targetCompatibility = JavaVersion.VERSION_13
 }
 tasks {
 	wrapper {
-		gradleVersion = "6.1"
+		gradleVersion = "6.3"
 		distributionType = Wrapper.DistributionType.ALL
 	}
 	withType<KotlinCompile>().all {
 		kotlinOptions {
 			freeCompilerArgs = listOf("-Xjsr305=strict")
-			jvmTarget = "11"
+			jvmTarget = "13"
 		}
 	}
 	withType<Test> {

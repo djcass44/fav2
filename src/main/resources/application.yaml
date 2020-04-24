@@ -3,6 +3,8 @@ spring:
     name: fav2
   profiles:
     active: dev
+  main:
+    web-application-type: reactive
 fav:
   path: "./data"
   url: http://localhost:8080

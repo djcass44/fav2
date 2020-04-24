@@ -20,21 +20,19 @@ package dev.castive.fav2.net
 import dev.castive.log2.logd
 import dev.castive.log2.loge
 import dev.castive.log2.logv
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitExchange
 import java.net.URI
 
 @Service
-class DirectNetworkLoader @Autowired constructor(
-	private val restTemplate: RestTemplate
+class DirectNetworkLoader(
+	private val webClient: WebClient
 ): NetworkLoader {
 	private val imageMimes = listOf("png", "ico")
 
-	override fun getIconPath(domain: String): String = try {
+	override suspend fun getIconPath(domain: String): String? = try {
 		val uri = URI(domain)
 		val host = "${uri.scheme}://${uri.host}"
 		imageMimes.mapNotNull {
@@ -43,17 +41,24 @@ class DirectNetworkLoader @Autowired constructor(
 	}
 	catch (e: Exception) {
 		"Failed to get icon path: $domain".loge(javaClass, e)
-		""
+		null
 	}
-	private fun getIcon(target: String): String? {
+	private suspend fun getIcon(target: String): String? {
 		"Targeting host $target".logd(javaClass)
 		return try {
-			val response = restTemplate.exchange(target, HttpMethod.HEAD, HttpEntity.EMPTY, Nothing::class.java)
-			val contentType = response.headers.contentType
+			val response = webClient.head()
+				.uri(target)
+				.awaitExchange()
+			val contentTypeHolder = response.headers().contentType()
+			if(contentTypeHolder.isEmpty) {
+				"Got null contentType for target: $target".loge(javaClass)
+				return null
+			}
+			val contentType = contentTypeHolder.get()
 			"Domain contentType: $contentType".logd(javaClass)
 			// Check that the response has a { Content-Type: 'image/...' } header
 			// This may need to be relaxed if websites don't use that mime (case and point - DockerHub uses octet stream)
-			if(contentType != null && (contentType.isCompatibleWith(MediaType.parseMediaType("image/*")) || contentType == MediaType.APPLICATION_OCTET_STREAM)) {
+			if((contentType.isCompatibleWith(MediaType.parseMediaType("image/*")) || contentType == MediaType.APPLICATION_OCTET_STREAM)) {
 				return target
 			}
 			null

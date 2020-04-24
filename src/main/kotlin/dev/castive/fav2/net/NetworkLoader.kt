@@ -18,5 +18,5 @@
 package dev.castive.fav2.net
 
 interface NetworkLoader {
-	fun getIconPath(domain: String): String?
+	suspend fun getIconPath(domain: String): String?
 }

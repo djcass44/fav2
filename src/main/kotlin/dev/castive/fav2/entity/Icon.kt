@@ -16,12 +16,7 @@
 
 package dev.castive.fav2.entity
 
-import org.springframework.data.annotation.Id
-import org.springframework.data.redis.core.RedisHash
-
-@RedisHash
 data class Icon(
-	@Id
 	val name: String,
 	val imageData: String,
 	var age: Int = 0
