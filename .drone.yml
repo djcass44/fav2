@@ -8,18 +8,14 @@ helm_deploy: &helm_deploy
   atomic: true
   cleanup_failed_upgrade: true
   reuse_values: true
-  kube_api_server: https://kubernetes.default
-  kube_certificate:
-    from_secret: kube_certificate
-  client_certificate_data:
-    from_secret: client_certificate_data
-  client_key_data:
-    from_secret: client_key_data
 
 steps:
   # BUILD OCI IMAGE
   - name: docker
-    image: harbor.v2.dcas.dev/library/drone-kaniko
+    image: harbor.v2.dcas.dev/infra/drone-kaniko:dcas-dev
+    pull: always
+    depends_on:
+      - helm_lint
     settings:
       registry: harbor.v2.dcas.dev
       repo: dcas.dev/fav2
@@ -27,8 +23,6 @@ steps:
         - latest
         - ${DRONE_BRANCH/\//-}
         - ${DRONE_COMMIT_SHA}
-      authjson_docker:
-        from_secret: DOCKER_AUTH
     # LINT HELM CHART
   - name: helm_lint
     image: harbor.v2.dcas.dev/djcass44/drone-helm3
@@ -37,11 +31,10 @@ steps:
       chart: ./fav-helm
     # DEPLOY TO DEV
   - name: deploy_development
-    image: harbor.v2.dcas.dev/djcass44/drone-helm3
+    image: harbor.v2.dcas.dev/infra/drone-helm3:development
     depends_on:
       - helm_lint
       - docker
-      - deploy_dev_redis
     settings:
       <<: *helm_deploy
       namespace: development
@@ -52,32 +45,12 @@ steps:
         - ingress.host=icon-dev.v2.dcas.dev
         - image.tag=${DRONE_COMMIT_SHA}
         - spring.profile=development
-    when:
-      branch:
-        exclude: master
-  - name: deploy_dev_redis
-    image: harbor.v2.dcas.dev/djcass44/drone-helm3
-    settings:
-      <<: *helm_deploy
-      namespace: development
-      add_repos: ["bitnami=https://charts.bitnami.com/bitnami"]
-      release: fav2-redis
-      chart: bitnami/redis
-      values:
-        - cluster.enabled=false
-        - master.persistence.enabled=false
-        - slave.persistence.enabled=false
-        - usePassword=false
-    when:
-      branch:
-        exclude: master
     # DEPLOY TO PROD
   - name: deploy_production
-    image: harbor.v2.dcas.dev/djcass44/drone-helm3
+    image: harbor.v2.dcas.dev/infra/drone-helm3:production
     depends_on:
       - helm_lint
       - docker
-      - deploy_prod_redis
     settings:
       <<: *helm_deploy
       namespace: production
@@ -90,21 +63,6 @@ steps:
         - spring.profile=production
         - resources.requests.memory=250Mi
         - resources.limits.memory=500Mi
-    when:
-      branch:
-        - master
-  - name: deploy_prod_redis
-    image: harbor.v2.dcas.dev/djcass44/drone-helm3
-    settings:
-      <<: *helm_deploy
-      namespace: production
-      add_repos: ["bitnami=https://charts.bitnami.com/bitnami"]
-      release: fav2-redis
-      chart: bitnami/redis
-      values:
-        - master.persistence.storageClass=nfs
-        - slave.persistence.storageClass=nfs
-        - usePassword=false
     when:
       branch:
         - master

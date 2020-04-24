@@ -21,9 +21,9 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
-        fsGroup: 100
-        runAsUser: 100
-        runAsGroup: 101
+        fsGroup: 1001
+        runAsUser: 1001
+        runAsGroup: 1001
       volumes:
       - name: tmp
         emptyDir: {}

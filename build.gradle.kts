@@ -25,13 +25,13 @@ plugins {
 	id("org.springframework.boot") version "2.2.6.RELEASE"
 	id("io.spring.dependency-management") version "1.0.9.RELEASE"
 	id("dev.dcas.gradle-util") version "0.1"
-	kotlin("jvm") version "1.3.70"
-	kotlin("plugin.spring") version "1.3.70"
-	kotlin("kapt") version "1.3.70"
+	kotlin("jvm") version "1.3.72"
+	kotlin("plugin.spring") version "1.3.72"
+	kotlin("kapt") version "1.3.72"
 	id("com.github.ben-manes.versions") version "0.27.0"
 }
 group = "dev.castive"
-version = "0.4"
+version = "0.5"
 java.apply {
 	sourceCompatibility = JavaVersion.VERSION_13
 	targetCompatibility = JavaVersion.VERSION_13
