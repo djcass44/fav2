@@ -17,6 +17,7 @@
 package dev.castive.fav2.rest
 
 import dev.castive.fav2.service.IconLoader
+import dev.castive.log2.logv
 import dev.dcas.util.extend.isESNullOrBlank
 import dev.dcas.util.spring.responses.BadRequestResponse
 import org.springframework.http.HttpHeaders
@@ -38,9 +39,9 @@ class IconController(private val loader: IconLoader) {
 	suspend fun getImage(@RequestParam site: String): ResponseEntity<ByteArray> {
 		if(site.isESNullOrBlank())
 			throw BadRequestResponse("'site' parameter must not be blank")
-		// get the stream or throw 400
-		val hash = site.hashCode()
-		val data = loader.getIconFromUrl(hash, site) ?: error("Failed to locate icon at url: '$site'")
+		// get the stream or throw an error
+		val data = loader.getIconFromUrl(site) ?: error("Failed to locate icon at url: '$site'")
+		"Loaded image with size: ${data.width}x${data.height}".logv(javaClass)
 		val headers = HttpHeaders().apply {
 			contentType = MediaType.IMAGE_PNG
 		}

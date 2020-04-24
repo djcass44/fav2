@@ -19,7 +19,6 @@ package dev.castive.fav2
 
 import dev.castive.fav2.net.DirectNetworkLoader
 import dev.castive.fav2.net.JsoupNetworkLoader
-import dev.castive.fav2.service.ImageUtils
 import dev.castive.log2.Log
 import dev.castive.log2.loge
 import dev.castive.log2.logi
@@ -32,7 +31,6 @@ import javax.imageio.ImageIO
 
 @Service
 class Fav(
-	private val imageUtils: ImageUtils,
 	private val direct: DirectNetworkLoader,
 	private val jsoup: JsoupNetworkLoader
 ) {

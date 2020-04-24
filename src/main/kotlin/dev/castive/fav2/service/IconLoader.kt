@@ -17,25 +17,33 @@
 package dev.castive.fav2.service
 
 import dev.castive.fav2.Fav
+import dev.castive.log2.logi
 import dev.dcas.util.spring.responses.BadRequestResponse
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class IconLoader(
 	private val fav: Fav
 ) {
+	private val cache: ConcurrentHashMap<Int, BufferedImage?> = ConcurrentHashMap()
 
 	private val prefixInsecure = "http://"
 	private val prefixSecure = "https://"
 
 
-	@Cacheable(value = ["icon"], key = "#a0")
-	suspend fun getIconFromUrl(hash: Int, url: String): BufferedImage? {
+	suspend fun getIconFromUrl(url: String): BufferedImage? {
+		cache[url.hashCode()]?.let {
+			"Got cache hit for url: '$url'".logi(javaClass)
+			return it
+		}
+
 		val domain = getBestUrl(url)
 		// The user has requested a url which we haven't downloaded yet, so download it
-		return fav.loadDomain(domain)
+		val image = fav.loadDomain(domain)
+		cache[url.hashCode()] = image
+		return image
 	}
 
 	internal fun getBestUrl(url: String): String {

@@ -62,7 +62,6 @@ dependencies {
 	// spring
 	implementation(boot("starter-actuator"))
 	implementation(boot("starter-webflux"))
-	implementation(boot("starter-cache"))
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
 	implementation(cloud("starter-config"))
 
